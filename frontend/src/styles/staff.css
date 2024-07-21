@@ -1,0 +1,92 @@
+/* General styling for the container */
+.staff-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for the form */
+.staff-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.staff-form select,
+.staff-form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.staff-form button {
+    padding: 10px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.staff-form button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for the list of staff members */
+.staff-list {
+    margin-top: 20px;
+}
+
+.staff-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    background-color: white;
+}
+
+.staff-item p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.staff-item button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #dc3545;
+    color: white;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.staff-item button:hover {
+    background-color: #c82333;
+}
+
+/* Message styling */
+.message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}

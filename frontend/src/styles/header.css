@@ -1,0 +1,109 @@
+/* src/styles/header.css */
+.header {
+    background-color: #4facfe;
+    padding: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    margin: 0 20px
+}
+
+.navbar-brand {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar-toggler {
+    display: none;
+    border: none;
+    background: none;
+    color: #fff;
+    font-size: 1.25rem;
+
+}
+
+.navbar-toggler-icon svg {
+    max-width: 50px;
+    height: 50px
+}
+
+.navbar-collapse {
+    display: block;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.navbar-collapse.show {
+    display: flex;
+}
+
+.navbar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-item {
+    margin: 10px 0;
+}
+
+.nav-link {
+    color: #fff;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #00f2fe;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #fff;
+    cursor: pointer;
+}
+
+.btn-link:hover {
+    color: #00f2fe;
+}
+
+@media (min-width: 768px) {
+    .navbar-collapse {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .navbar-nav {
+        flex-direction: row;
+    }
+
+    .nav-item {
+        margin: 0 10px;
+    }
+
+    .navbar-toggler {
+        display: none;
+    }
+}
+
+@media (max-width: 762px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .navbar-collapse {
+        display: block;
+    }  
+}

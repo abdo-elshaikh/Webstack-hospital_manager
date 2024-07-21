@@ -1,0 +1,46 @@
+{
+  "name": "hospital-manager",
+  "version": "1.0.0",
+  "description": "A Hospital Manager Application for managing hospital operations",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon --exec babel-node app.js",
+    "start-server": "nodemon --exec babel-node --presets @babel/preset-env ./app.js",
+    "lint": "eslint",
+    "check-lint": "lint [0-9]*.js"
+  },
+  "keywords": [
+    "hospital",
+    "manager",
+    "nodejs",
+    "express",
+    "mysql"
+  ],
+  "author": "Abdo Mhmd",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "eslint": "^7.32.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^3.1.0",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.1",
+    "mssql": "^11.0.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
+    "redis": "^4.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.8",
+    "@babel/node": "^7.24.8",
+    "@babel/preset-env": "^7.24.8",
+    "nodemon": "^2.0.7"
+  }
+}
