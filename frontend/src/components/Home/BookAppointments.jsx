@@ -4,9 +4,13 @@ import { bookAppointment } from '../../services/bookingService';
 import { getAllDepartments } from '../../services/departmentService';
 import { getServicesByDepartment } from '../../services/priceService';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom'
 import '../../styles/home.css';
 
-const BookAppointments = () => {
+const BookAppointments = ({currentUser}) => {
+    // const currentUser = JSON.parse(localStorage.getItem('user'));
+    // console.log(currentUser);
+    const navigate = useNavigate()
     const [departments, setDepartments] = useState([]);
     const [services, setServices] = useState([]);
     const [appointment, setAppointment] = useState({
@@ -27,6 +31,11 @@ const BookAppointments = () => {
 
     const handleAppointmentSubmit = async (e) => {
         e.preventDefault();
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        if (!currentUser) {
+            toast.error('Please login to book an appointment or register');
+            return;
+        }
         bookAppointment(appointment).then((data) => {
             if (data.error) {
                 toast.error(data.error);

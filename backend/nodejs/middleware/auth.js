@@ -2,8 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const { sendEmail } = require('../utils/mailService');
-// const { sendSMS } = require('../utils/smsService');
-import dotenv from 'dotenv'
+const dotenv = require('dotenv');
 dotenv.config();
 
 const register = async (req, res) => {

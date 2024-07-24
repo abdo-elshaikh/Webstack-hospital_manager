@@ -1,26 +1,20 @@
 // src/components/Profile.js
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { getUserById } from '../services/AdminService';
 import { useNavigate } from 'react-router-dom';
 import '../styles/profile.css';
 
 const Profile = ({currentUser}) => {
-    const { id } = useParams();
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const response = await getUserById(id);
-            if (response.error) {
-                setError(response.error);
-            } else {
-                setUser(response);
-            }
+        if (!currentUser) {
+            navigate('/login');
+        } else {
+            setUser(currentUser);
         }
-        fetchUser();
-    }, [id]);
+    }, []);    
 
     if (error) {
         return <div className="alert alert-danger">{error}</div>;

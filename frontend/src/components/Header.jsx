@@ -6,20 +6,16 @@ import '../styles/header.css';
 
 const Header = ({ currentUser, handleLogout, isLogedIn }) => {
     const navigate = useNavigate();
-
-
     const handleLogoutClick = () => {
         handleLogout();
         navigate('/login');
     }
 
-    useEffect(() => {
-        if (!isLogedIn) {
-            navigate('/login');
-        }
-    }
-        , [isLogedIn]);
-
+    // useEffect(() => {
+    //     if (!isLogedIn) {
+    //         navigate('/login');
+    //     }
+    // }, [isLogedIn]);
 
     return (
         <header className="header">
@@ -33,7 +29,6 @@ const Header = ({ currentUser, handleLogout, isLogedIn }) => {
                                 {currentUser?.role === 'admin' ?
                                     <>
                                         <NavDropdown title="Admin" id="basic-nav-dropdown">
-                                            <NavDropdown.Item as={Link} to={`/profile/${currentUser._id}`}>Profile</NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to="/admin/users">Users</NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to="/admin/departments">Departments</NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to="/admin/staff">Staff</NavDropdown.Item>
@@ -49,20 +44,18 @@ const Header = ({ currentUser, handleLogout, isLogedIn }) => {
                                     {currentUser?.role === 'staff' ?
                                         <>
                                             <NavDropdown title="Staff" id="basic-nav-dropdown">
-                                                <NavDropdown.Item as={Link} to={`/profile/${currentUser._id}`}>Profile</NavDropdown.Item>
                                                 <NavDropdown.Item as={Link} to="/staff/appointments">Appointments</NavDropdown.Item>
                                                 <NavDropdown.Item as={Link} to="/staff/services">Services</NavDropdown.Item>
                                                 <NavDropdown.Item as={Link} to="/staff/patients">Patients</NavDropdown.Item>
                                             </NavDropdown>
                                         </>
-                                        :
-                                        <>
-                                            <Nav.Link as={Link} to={`/profile/${currentUser._id}`}></Nav.Link>
-                                        </>
+                                        : null 
                                     }
                                     </>
                                 }
+                                <Nav.Link as={Link} to={'/profile'}>Profile</Nav.Link>
                                 <Nav.Link as={Button} variant="link" onClick={handleLogoutClick}>Logout</Nav.Link>
+
                             </>
                         ) : (
                             <>

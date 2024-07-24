@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-import { protect, admin } from '../middleware/auth';
-import { getPositions, getPositionById, createPosition, updatePosition, deletePosition } from '../controllers/positionController';
+const { protect, admin } = require('../middleware/auth');
+const { getPositions, getPositionById, createPosition, updatePosition, deletePosition } = require('../controllers/positionController');
 
 router.route('/').get(protect, getPositions).post(protect, admin, createPosition);
 router.route('/:id').get(protect, getPositionById).put(protect, admin, updatePosition).delete(protect, admin, deletePosition);

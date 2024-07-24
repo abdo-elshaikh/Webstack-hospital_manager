@@ -1,7 +1,6 @@
 .home-container {
     padding: 0;
-    margin: 0;
-
+    margin-top: 80px;
 }
 
 .hero-section {
@@ -112,6 +111,31 @@
     color: #ff6f61;
 }
 
+.tap-to-top {
+    display: none;
+    position: fixed;
+    cursor: pointer;
+    bottom: 40px;
+    right: 40px;
+    background-color: #ff6f61;
+    color: white;
+    padding: 20px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.tap-to-top:hover {
+    background-color: #ff6f61;
+    transform: scale(1.05);
+}
+
+.tap-to-top.active {
+    display: block;
+}
+
+.tap-to-top span {
+    /* font-size: 0.5rem; */
+    font-weight: 300;
+}
 /* Responsive styles */
 @media (max-width: 768px) {
     .hero-title {

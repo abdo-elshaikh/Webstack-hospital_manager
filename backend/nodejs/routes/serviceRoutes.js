@@ -11,8 +11,8 @@ const {
     getServiceByDepartment
 } = require('../controllers/serviceController');
 
-router.route('/').get(protect, getServices).post(protect, admin, createService);
-router.route('/:id').get(protect, getService).put(protect, admin, updateService).delete(protect, admin, deleteService);
-router.route('/department/:id').get(protect, getServiceByDepartment);
+router.route('/').get(getServices).post(protect, admin, createService);
+router.route('/:id').get(getService).put(protect, admin, updateService).delete(protect, admin, deleteService);
+router.route('/department/:id').get(getServiceByDepartment);
 
 module.exports = router;

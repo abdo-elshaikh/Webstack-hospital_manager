@@ -18,7 +18,7 @@ const HeroSection = ({ user, isLogged, altStyle }) => {
                         Your one-stop solution for managing hospital operations efficiently.
                     </p>
                     {isLogged ? (
-                        <Link to={`/profile/${user._id}`}>
+                        <Link to={`/profile`}>
                             <Button variant="primary" className="hero-button mt-2">Go to Profile</Button>
                         </Link>
                     ) : (

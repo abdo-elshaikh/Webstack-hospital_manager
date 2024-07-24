@@ -1,7 +1,7 @@
-import Staff from '../models/Staff';
-import User from '../models/User';
-import Department from '../models/Department';
-import Position from '../models/Position';
+const Staff = require('../models/Staff');
+const User = require('../models/User');
+const Department = require('../models/Department');
+const Position = require('../models/Position');
 
 const getAllStaff = async (req, res) => {
     try {
@@ -114,4 +114,4 @@ const getStaffByDepartment = async (req, res) => {
     }
 }
 
-export { getAllStaff, getStaff, createStaff, updateStaff, deleteStaff, getStaffByPosition, getStaffByDepartment };
+module.exports = { getAllStaff, getStaff, createStaff, updateStaff, deleteStaff, getStaffByPosition, getStaffByDepartment };

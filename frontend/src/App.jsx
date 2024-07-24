@@ -75,14 +75,12 @@ const MainApp = () => {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/profile" element={<Profile currentUser={currentUser}/>} />
                 <Route path="/admin/*" element={<Admin currentUser={currentUser} />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />
-            <ToastContainer position={
-                location.pathname.includes('/login') || location.pathname.includes('/register') ? 'top-center' : 'bottom-right'
-            } />
+            <ToastContainer position={'top-right'} />
         </Container>
     );
 }
