@@ -80,3 +80,17 @@ Webstack-hospital_manager is a comprehensive full-stack web application designed
 - `PUT /api/prices/:id` - Update a price by ID
 - `DELETE /api/prices/:id` - Delete a price by ID
 
+
+## Contributing
+To contribute to this project, follow these steps:
+1. Fork the repository.
+2. Create a new branch using the command `git checkout -b feature/your-feature`.
+3. Commit your changes using the command `git commit -m 'Add some feature'`.
+4. Push to the branch using the command `git push origin feature/your-feature`.
+5. Open a pull request.
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+This `README.md` file provides a clear and comprehensive overview of your project, including its features, installation instructions, usage, project structure, API endpoints, contributing guidelines, and license information. You can further customize it based on additional details or specific instructions you want to include.
+
