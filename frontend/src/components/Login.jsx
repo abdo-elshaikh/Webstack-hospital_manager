@@ -1,7 +1,6 @@
-// Login.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../services/AuthService'
+import { login } from '../services/AuthService';
 import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -14,23 +13,30 @@ const schema = yup.object().shape({
     email: yup.string().email('Invalid email').required('Email is required'),
     password: yup.string().required('Password is required')
 });
+
 const Login = ({ handleLogIn }) => {
-    const { register: registerForm, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     });
 
     const navigate = useNavigate();
+
     const onSubmit = async (data) => {
         const response = await login(data.email, data.password);
 
         if (response.error) {
             toast.error(response.error);
-            toast.success(response.message); return;
+            return;
         }
-        toast.success(`Welcome back : ${response.user.name}`);
+        
+        toast.success(`Welcome back: ${response.user.name}`);
         handleLogIn(response.user);
         navigate('/');
     }
+
+    useEffect(() => {
+        document.title = 'Login - Hospital Manager';
+    }, []);
 
     return (
         <Container className="justify-content-md-center">
@@ -43,7 +49,7 @@ const Login = ({ handleLogIn }) => {
                             <Form.Control
                                 type="email"
                                 placeholder="Enter email"
-                                {...registerForm('email')}
+                                {...register('email')}
                                 isInvalid={!!errors.email}
                             />
                             <Form.Control.Feedback type="invalid">
@@ -56,7 +62,7 @@ const Login = ({ handleLogIn }) => {
                             <Form.Control
                                 type="password"
                                 placeholder="Password"
-                                {...registerForm('password')}
+                                {...register('password')}
                                 isInvalid={!!errors.password}
                             />
                             <Form.Control.Feedback type="invalid">

@@ -3,15 +3,9 @@ const Service = require('../models/Service');
 const Staff = require('../models/Staff');
 const Patient = require('../models/Patient');
 const Department = require('../models/Department');
-const { validationResult } = require('express-validator');
 
 const createAppointment = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const appointment = req.body;
+    const { appointment } = req.body;
     try {
         const service = await Service.findById(appointment.service);
         const staff = await Staff.findById(appointment.staff);
@@ -24,7 +18,11 @@ const createAppointment = async (req, res) => {
 
         const newAppointment = new Appointment(appointment);
         await newAppointment.save();
-        return res.status(201).json({ message: 'Appointment created successfully', appointment: newAppointment });
+        if (newAppointment) {
+            return res.status(201).json({ message: 'Appointment created successfully', appointment: newAppointment });
+        } else {
+            return res.status(400).json({ message: 'Appointment creation failed' });
+        }
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -35,9 +33,9 @@ const getAllAppointments = async (req, res) => {
         const appointments = await Appointment.find()
             .populate('service')
             .populate('staff')
-            .populate('patient');
+            .populate('patient').sort({date: 1});
 
-        if (appointments.length > 0) {
+        if (appointments) {
             return res.status(200).json({ appointments });
         } else {
             return res.status(404).json({ message: 'No appointments found' });
@@ -48,7 +46,7 @@ const getAllAppointments = async (req, res) => {
 };
 
 const getAppointmentById = async (req, res) => {
-    const id = req.params.id;
+    const {id} = req.params;
     try {
         const appointment = await Appointment.findById(id)
             .populate('service')
@@ -66,7 +64,7 @@ const getAppointmentById = async (req, res) => {
 };
 
 const updateAppointment = async (req, res) => {
-    const id = req.params.id;
+    const {id} = req.params;
     const appointment = req.body;
     try {
         const updatedAppointment = await Appointment.findByIdAndUpdate(id, appointment, { new: true });
@@ -106,7 +104,7 @@ const deleteAll = async (req, res) => {
 };
 
 const changeStatus = async (req, res) => {
-    const id = req.params.id;
+    const {id} = req.params;
     const { status } = req.body;
 
     try {
@@ -117,27 +115,31 @@ const changeStatus = async (req, res) => {
 
         appointment.status = status;
         const updatedAppointment = await appointment.save();
+        if (updatedAppointment) {
+            return res.status(200).json({ message: 'Appointment status updated successfully', appointment: updatedAppointment });
+        } else {
+            return res.status(400).json({ message: 'Appointment status update failed' });
+        }
 
-        return res.status(200).json({ message: 'Appointment status updated successfully', appointment: updatedAppointment });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
 
 const getAppointmentsByPatient = async (req, res) => {
-    const patientId = req.params.patientId;
+    const {patientId} = req.params;
     try {
         const appointments = await Appointment.find({ patient: patientId })
             .populate('service')
             .populate('staff')
             .populate('patient');
 
-        if (appointments.length > 0) {
+        if (appointments) {
             return res.status(200).json({ appointments });
         } else {
             return res.status(404).json({ message: 'No appointments found' });
         }
-        console.log(appointments)
+        // console.log(appointments)
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }

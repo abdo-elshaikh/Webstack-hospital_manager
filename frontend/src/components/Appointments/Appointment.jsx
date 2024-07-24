@@ -25,7 +25,6 @@ const Appointment = () => {
     const [staff, setStaff] = useState([]);
     const [departments, setDepartments] = useState([]);
 
-    // Form state
     const [formData, setFormData] = useState({
         patient: '',
         department: '',
@@ -42,18 +41,33 @@ const Appointment = () => {
     }, []);
 
     const loadAppointments = async () => {
-        const { appointments } = await getAppointments();
-        setAppointments(appointments);
+        getAppointments().then((data) => {
+            if(data.error) {
+                toast.error(data.error);
+                } else {
+                    setAppointments(data.appointments);
+            }
+        })
     };
 
     const loadPatients = async () => {
-        const { patients } = await getPatients();
-        setPatients(patients || []);
+        getPatients().then((data) => {
+            if(data.error) {
+                toast.error(data.error);
+                } else {
+                    setPatients(data.patients);
+            }
+    });
     };
 
     const loadDepartments = async () => {
-        const { departments } = await getAllDepartments();
-        setDepartments(departments || []);
+        getAllDepartments().then((data) => {
+            if(data.error) {
+                toast.error(data.error);
+                } else {
+                    setDepartments(data.departments);
+            }
+        })
     };
 
     const handleDepartmentChange = async (e) => {
@@ -170,7 +184,7 @@ const Appointment = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {appointments.map(appointment => (
+                        {appointments?.map(appointment => (
                             <tr key={appointment._id}>
                                 <td>{appointment.patient?.name}</td>
                                 <td>{appointment.department?.name}</td>
@@ -222,7 +236,7 @@ const Appointment = () => {
                                 required
                             >
                                 <option value="">Select Department</option>
-                                {departments.map(department => (
+                                {departments?.map(department => (
                                     <option key={department._id} value={department._id}>{department.name}</option>
                                 ))}
                             </Form.Control>
@@ -237,7 +251,7 @@ const Appointment = () => {
                                 required
                             >
                                 <option value="">Select Service</option>
-                                {services.map(service => (
+                                {services?.map(service => (
                                     <option key={service._id} value={service._id}>{service.service}</option>
                                 ))}
                             </Form.Control>

@@ -15,7 +15,6 @@ const getHeaders = () => {
 const getAppointments = async () => {
     try {
         const response = await axios.get(positionsUrl, { headers: getHeaders() });
-        // console.log(response.data)
         return response.data;
     } catch (error) {
         return { error: error.response.message };

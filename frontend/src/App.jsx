@@ -25,70 +25,66 @@ const App = () => {
 
 const MainApp = () => {
     const [currentUser, setCurrentUser] = useState(null);
-    const [isLogged, setIsLogged] = useState(false);
-    const location = useLocation();
+    const [isLogedIn, setIsLogedIn] = useState(false);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                setCurrentUser(JSON.parse(storedUser));
-                setIsLogged(true);
-            } else {
-                try {
-                    const { user } = await getCurrentUser();
-                    setCurrentUser(user);
-                    setIsLogged(true);
-                } catch (error) {
-                    toast.error('Failed to fetch current user');
+        fetchCurrentUser();
+    }, [isLogedIn]);
+
+    const fetchCurrentUser = async () => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            getCurrentUser().then((data) => {
+                if (data.error) {
+                    setIsLogedIn(false);
+                } else {
+                    setCurrentUser(data.user);
+                    setIsLogedIn(true);
                 }
-            }
-        };
-
-        fetchUser();
-    }, []);
-
-    const handleLogIn = async (user) => {
+            });
+        }
         setCurrentUser(user);
-        setIsLogged(true);
+    };
+
+    const handleLogIn = (user) => {
+        setCurrentUser(user);
+        setIsLogedIn(true);
     };
 
     const handleLogout = async () => {
-        try {
-            const data = await logout();
+        logout().then((data) => {
             if (data.error) {
                 toast.error(data.error);
-            } else {
-                setCurrentUser(null);
-                setIsLogged(false);
-                toast.success(data.success);
+                return;
             }
-        } catch (error) {
-            toast.error('Failed to log out');
-        }
+            setCurrentUser(null);
+            setIsLogedIn(false);
+            toast.success('Logged out successfully');
+        })
     };
 
-    const showHeader = !location.pathname.startsWith('/admin');
-
+    // hide header in admin page
+    const location = useLocation();
+    const hideHeader = location.pathname.includes('/admin');
     return (
-        <Container fluid className="d-flex flex-column min-vh-100">
-            {showHeader && <Header currentUser={currentUser} isLogged={isLogged} onLogout={handleLogout} />}
-            <Container fluid as="main" className="flex-grow-1">
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<Login onLogin={handleLogIn} />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/admin/*" element={<Admin />} />
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
-            </Container>
+        <Container>
+            {!hideHeader && <Header currentUser={currentUser} handleLogout={handleLogout} isLogedIn={isLogedIn} />}
+            <Routes>
+                <Route path="/" element={<Home user={currentUser}  isLogged={isLogedIn}/>} />
+                <Route path="/login" element={<Login handleLogIn={handleLogIn} />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/admin/*" element={<Admin currentUser={currentUser} />} />
+                <Route path="*" element={<NotFound />} />
+            </Routes>
             <Footer />
-            <ToastContainer />
+            <ToastContainer position={
+                location.pathname.includes('/login') || location.pathname.includes('/register') ? 'top-center' : 'bottom-right'
+            } />
         </Container>
     );
-};
+}
 
 export default App;

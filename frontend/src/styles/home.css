@@ -1,12 +1,99 @@
 .home-container {
     padding: 0;
+    margin: 0;
+
 }
 
 .hero-section {
-    background: url('https://via.placeholder.com/1920x1080') no-repeat center center;
+    background: url('/background-video.mp4') no-repeat center center;
     background-size: cover;
     color: white;
-    padding: 100px 0;
+    padding: 30px 0;
+    text-align: center;
+}
+
+.hero-content {
+    background-color:rgb(217, 216, 215);
+    padding: 30px 0;
+    text-align: center;
+
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 30px;
+    color: #ff6f61;
+}
+
+.hero-text {
+    font-size: 1.8rem;
+    margin-bottom: 50px;
+    color: #fff;
+}
+
+.hero-button {
+    margin: 0 15px;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.hero-button:hover {
+    background-color: #ff6f61;
+    transform: scale(1.05);
+}
+
+.gallery-section {
+    padding: 80px 0;
+}
+
+.gallery-img img {
+    transition: transform 0.3s ease, filter 0.3s ease;
+    
+}
+
+.gallery-img img:hover {
+    transform: scale(1.05);
+    filter: brightness(0.9);
+}
+
+.about-us-section {
+    padding: 80px 0;
+}
+
+.about-us-section p {
+    transition: color 0.3s ease;
+}
+
+.about-us-section p:hover {
+    color: #ff6f61;
+}
+
+.contact-us-section {
+    padding: 80px 0;
+}
+
+.contact-us-section button {
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.contact-us-section button:hover {
+    background-color: #ff6f61;
+    transform: scale(1.05);
+}
+
+.book-appointments-section {
+    padding: 80px 0;
+}
+
+.book-appointments-section button {
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.book-appointments-section button:hover {
+    background-color: #ff6f61;
+    transform: scale(1.05);
 }
 
 .gallery-section,
@@ -14,107 +101,53 @@
 .contact-us-section,
 .location-section,
 .book-appointments-section {
-    padding: 60px 0;
-    margin: 30px 0;
+    padding: 80px 0;
+    margin: 40px 0;
 }
 
-.gallery-section h2,
-.about-us-section h2,
-.contact-us-section h2,
-.location-section h2,
-.book-appointments-section h2 {
-    margin-bottom: 30px;
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 40px;
+    color: #ff6f61;
 }
 
-.hero-section {
-    padding: 0;
-    /* margin-top: 20px;
-    margin-bottom: 20px; */
-}
-
-.hero-section .card {
-    border: none;
-}
-
-.hero-section .card-img {
-    opacity: 0.5;
-}
-
-.hero-section .card-title {
-    font-size: 3rem;
-}
-
-.hero-section .card-text {
-    font-size: 1.25rem;
-}
-
-.btn-primary, .btn-outline-primary {
-    margin: 10px;
-}
-
-.gallery-section h2 {
-    margin-bottom: 30px;
-}
-
-.gallery-section img {
-    margin-bottom: 20px;
-}
-
-.about-us-section h2 {
-    margin-bottom: 30px;
-}
-
-.about-us-section p {
-    font-size: 1.1rem;
-}
-
-.contact-us-section h2 {
-    margin-bottom: 30px;
-}
-
-.contact-us-section form {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.contact-us-section form .form-group {
-    margin-bottom: 20px;
-}
-
-.location-section h2 {
-    margin-bottom: 30px;
-}
-
-.location-section p {
-    font-size: 1.1rem;
-}
-
-.book-appointments {
-    margin-top: 20px;
-}
-
-.form-column {
-    margin: auto;
-}
-
-.book-appointments img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 15px;
-}
-
-.book-appointments .btn {
-    display: block;
-    width: 100%;
-    margin-top: 10px;
-}
-
+/* Responsive styles */
 @media (max-width: 768px) {
-    .book-appointments {
-        padding: 20px;
+    .hero-title {
+        font-size: 2.5rem;
     }
 
-    .book-appointments img {
-        display: none;
+    .hero-text {
+        font-size: 1.4rem;
+    }
+
+    .hero-button {
+        margin: 10px 0;
+        font-size: 1rem;
+    }
+
+    .hero-section, .hero-section-alt {
+        padding: 80px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-text {
+        font-size: 1.2rem;
+    }
+
+    .hero-button {
+        width: 100%;
+        margin: 10px 0;
+        font-size: 1rem;
+    }
+
+    .hero-section, .hero-section-alt {
+        padding: 60px 0;
     }
 }

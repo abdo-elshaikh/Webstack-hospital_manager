@@ -7,8 +7,6 @@ import { toast } from 'react-toastify';
 import '../../styles/home.css';
 
 const BookAppointments = () => {
-    // const currentUser = JSON.parse(localStorage.getItem('user'));
-    // console.log(currentUser._id);
     const [departments, setDepartments] = useState([]);
     const [services, setServices] = useState([]);
     const [appointment, setAppointment] = useState({
@@ -60,10 +58,10 @@ const BookAppointments = () => {
     };
 
     return (
-        <Container className="book-appointments">
+        <Container className="book-appointments-section text-center">
+            <h2 className="section-title">Book Appointment</h2>
             <Row>
                 <Col md={6} className="form-column">
-                    <h3 className="text-center">Book Appointment</h3>
                     <Form onSubmit={handleAppointmentSubmit}>
                         <FormGroup className="mb-3">
                             <FormLabel>Department</FormLabel>
@@ -93,14 +91,7 @@ const BookAppointments = () => {
                         </FormGroup>
                         <FormGroup className="mb-3">
                             <FormLabel>Phone</FormLabel>
-                            <FormControl type="text" name="phone" onChange={handleAppointment} onEnded={
-                                (e) => {
-                                    const regex = /^[0-9]{10}$/;
-                                    if (!regex.test(e.target.value)) {
-                                        return toast.error('Phone number must be 10 digits');
-                                    }
-                                }
-                            } required />
+                            <FormControl type="text" name="phone" onChange={handleAppointment} required />
                         </FormGroup>
                         <FormGroup className="mb-3">
                             <FormLabel>Address</FormLabel>
@@ -114,7 +105,7 @@ const BookAppointments = () => {
                     </Form>
                 </Col>
                 <Col md={6} className="d-none d-md-block">
-                    <img src="./" alt="Booking Illustration" className="img-fluid" />
+                    <img src="/book.png" alt="Booking Illustration" className="img-fluid" />
                 </Col>
             </Row>
         </Container>

@@ -15,8 +15,8 @@ const Home = ({ user, isLogged }) => {
             <AboutUs />
             <Gallery />
             <BookAppointments />
-            <Location />
             <ContactUs />
+            <Location />
         </Container>
     );
 };

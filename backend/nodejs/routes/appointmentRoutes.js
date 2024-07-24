@@ -1,16 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-const {
-    getAppointmentById,
-    getAllAppointments,
-    createAppointment,
-    changeStatus,
-    deleteAppointment,
-    updateAppointment,
-    deleteAll,
-    getAppointmentsByPatient
-} = require('../controllers/appointmentController');
+const { getAllAppointments, createAppointment, getAppointmentById, updateAppointment, deleteAppointment, changeStatus, deleteAll, getAppointmentsByPatient } = require('../controllers/appointmentController');
 const { protect, admin } = require('../middleware/auth');
 
 router.route('/')

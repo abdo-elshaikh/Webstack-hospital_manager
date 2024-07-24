@@ -5,7 +5,7 @@ import '../../styles/home.css';
 const ContactUs = () => {
     return (
         <Container className="contact-us-section text-center">
-            <h2>Contact Us</h2>
+            <h2 className="section-title">Contact Us</h2>
             <Form>
                 <Form.Group controlId="formName">
                     <Form.Label>Name</Form.Label>

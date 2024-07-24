@@ -1,11 +1,15 @@
 // src/components/Footer.jsx
 import React from 'react';
 import { Container } from 'react-bootstrap';
+import '../styles/footer.css';
 
 const Footer = () => (
-    <footer>
+    <footer className="footer">
         <Container>
-            <p>© 2024 H S I. All rights reserved.</p>
+            <div className="text-center py-3">
+                &copy; 2021 H S I
+            </div>
+
         </Container>
     </footer>
 );

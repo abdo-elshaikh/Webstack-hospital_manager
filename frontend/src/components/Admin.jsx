@@ -8,14 +8,13 @@ import Service from './Services/Service';
 import Staff from './Staff/Staff';
 import Patient from './Patients/Patient';
 import Appointment from './Appointments/Appointment';
-import PatientAppointment from './Appointments/PatientAppointment'
-import AppointmentDetail from './Appointments/AppointmentDetail';
-import AppointmentCreate from './Appointments/AppointmentCreate';
-import AppointmentEdit from './Appointments/AppointmentEdit';
+import BookAppointment from './Appointments/BookAppointment';
+import PatientAppointment from './Appointments/PatientAppointment';
+
 import NotFound from './NotFound';
 import '../styles/admin.css';
 
-const Admin = ({ currentUser }) => {
+const Admin = () => {
     const [isSliderOpen, setIsSliderOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -49,7 +48,7 @@ const Admin = ({ currentUser }) => {
                             <Nav.Link as={Link} to="/admin/staff">Staff</Nav.Link>
                             <Nav.Link as={Link} to="/admin/patients">Patients</Nav.Link>
                             <Nav.Link as={Link} to="/admin/appointments">Appointments</Nav.Link>
-
+                            <Nav.Link as={Link} to="/admin/booking">Booking</Nav.Link>
                             <Nav.Link as={Link} to="/">Exit</Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
@@ -70,9 +69,7 @@ const Admin = ({ currentUser }) => {
                     <Route path="staff" element={<Staff />} />
                     <Route path="patients" element={<Patient />} />
                     <Route path="appointments" element={<Appointment />} />
-                    <Route path="appointments/create" element={<AppointmentCreate />} />
-                    <Route path="appointments/:id" element={<AppointmentDetail />} />
-                    <Route path="appointments/edit/:id" element={<AppointmentEdit />} />
+                    <Route path="booking" element={<BookAppointment />} />
                     <Route path="appointments/patient/:id" element={<PatientAppointment />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>

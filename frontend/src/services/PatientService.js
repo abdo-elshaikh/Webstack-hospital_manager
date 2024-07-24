@@ -68,7 +68,7 @@ const getPatientByName = async (name) => {
 
 const getPatientByCode = async (code) => {
     try {
-        const response = await axios.delete(`${positionsUrl}/code`, { code }, { headers: getHeaders() });
+        const response = await axios.get(`${positionsUrl}/code`, { code }, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
