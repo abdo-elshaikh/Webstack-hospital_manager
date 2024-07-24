@@ -1,25 +1,21 @@
 import { useState, useEffect } from 'react';
 import { getPositions, createPosition, updatePosition, deletePosition } from '../../services/positionService';
 import Modal from '../../components/Modal';
+import { toast } from 'react-toastify';
 import '../../styles/department.css';
 
 const Position = () => {
     const [positions, setPositions] = useState([]);
     const [position, setPosition] = useState({ name: '', description: '' });
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [IsModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         getPositions().then((data) => {
             if (data.error) {
-                setError(data.error);
-                setMessage('')
+                toast.error(data.error);
             } else {
-                // console.log(data.positions)
                 setPositions(data.positions);
-                setMessage('Positions fetched successfully');
             }
         });
     }, []);
@@ -34,24 +30,20 @@ const Position = () => {
         if (isEditing) {
             const data = await updatePosition(position._id, position);
             if (data.error) {
-                setError(data.error);
-                setMessage('')
+                toast.error(data.error);
             } else {
                 const index = positions.findIndex((d) => d._id === position._id);
                 positions[index] = data.position;
                 setPositions([...positions]);
-                setMessage(data.message);
-                setError('')
+                toast.success(data.message);
             }
         } else {
             const data = await createPosition(position);
             if (data.error) {
-                setError(data.error);
-                setMessage('')
+                toast.error(data.error);
             } else {
                 setPositions([...positions, data.position]);
-                setError('')
-                setMessage(data.message);
+                toast.success(data.message);
             }
         }
         setPosition({ name: '', description: '' });
@@ -67,29 +59,27 @@ const Position = () => {
     const handleDelete = async (id) => {
         const data = await deletePosition(id);
         if (data.error) {
-            setError(data.error);
-            setMessage('')
+            toast.error(data.error);
         } else {
             setPositions(positions.filter((d) => d._id !== id));
-            setMessage(data.message);
-            setError('')
+            toast.success(data.message);
         }
     }
     return (
         <div className="department-container">
             <div className="department-header">
-                <h1>Departments</h1>
-                <button onClick={() => setIsModalOpen(true)}>Add New Department</button>
+                <h1>Positions Manager</h1>
+                <button onClick={() => setIsModalOpen(true)}>Add New Position</button>
             </div>
             <Modal isOpen={IsModalOpen} onClose={() => {
                 setPosition({ name: '', description: '' });
                 setIsEditing(false);
                 setIsModalOpen(false);
             }}>
-                <h2>{isEditing ? 'Edit Department' : 'Add New Department'}</h2>
+                <h2>{isEditing ? 'Edit Position' : 'Add New Position'}</h2>
                 <form onSubmit={handleCreateOrUpdate} className='staff-form'>
                     <div className="form-group">
-                        <label>Name</label>
+                        <label>Position</label>
                         <input
                             type="text"
                             value={position.name}
@@ -120,8 +110,7 @@ const Position = () => {
                     <button type='button' onClick={() => setIsModalOpen(false)}>Cancel</button>
                 </form>
             </Modal>
-            {message && <div className="alert alert-success">{message}</div>}
-            {error && <div className="alert alert-danger">{error}</div>}
+            <hr />
             <table className="table">
                 <thead>
                     <tr>

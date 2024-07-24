@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/AuthService'
+import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
-import Home from '../components/Home';
 import * as yup from "yup";
 import '../styles/login.css';
 
@@ -17,44 +18,67 @@ const Login = ({ handleLogIn }) => {
     const { register: registerForm, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     });
-    const navigate = useNavigate();
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
 
+    const navigate = useNavigate();
     const onSubmit = async (data) => {
         const response = await login(data.email, data.password);
 
         if (response.error) {
-            setError(response.error);
-            setMessage(response.message); return;
+            toast.error(response.error);
+            toast.success(response.message); return;
         }
-        setMessage('Login successful');
+        toast.success(`Welcome back : ${response.user.name}`);
         handleLogIn(response.user);
-        setError('');
         navigate('/');
     }
-    return (
-        <div className="container">
-            <section id="content">
-                <form onSubmit={handleSubmit(onSubmit)} className="login-form">
-                    <h1 className="login-title">Login</h1>
-                    <div className="">
-                        <input type="email" {...registerForm('email')} className="" id='email' />
-                        <p className="text-danger">{errors.email?.message}</p>
-                    </div>
-                    <div className="">
-                        <input type="password" {...registerForm('password')} className="" id='password' />
-                        <p className="text-danger">{errors.password?.message}</p>
-                    </div>
-                    <div className="">
-                        <button type="submit" className="btn btn-primary">Login</button>
-                        <Link to="/register" className="">Register</Link>
-                        <Link to="/forgotPassword" className="">Lost your password?</Link>
 
-                    </div>
-                </form>
-            </section>
-        </div>
+    return (
+        <Container className="justify-content-md-center">
+            <Row className="justify-content-md-center">
+                <Col md={6}>
+                    <Form onSubmit={handleSubmit(onSubmit)} className="login-form">
+                        <h2 className="text-center">Login</h2>
+                        <Form.Group controlId="formEmail">
+                            <Form.Label>Email address</Form.Label>
+                            <Form.Control
+                                type="email"
+                                placeholder="Enter email"
+                                {...registerForm('email')}
+                                isInvalid={!!errors.email}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.email?.message}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+
+                        <Form.Group controlId="formPassword" className="mt-3">
+                            <Form.Label>Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Password"
+                                {...registerForm('password')}
+                                isInvalid={!!errors.password}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.password?.message}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+
+                        <Button variant="primary" type="submit" className="mt-3">
+                            Login
+                        </Button>
+
+                        <div className="mt-3">
+                            <Link to="/forgotPassword">Forgot password?</Link>
+                        </div>
+
+                        <div className="mt-3">
+                            Don't have an account? <Link to="/register">Register</Link>
+                        </div>
+                    </Form>
+                </Col>
+            </Row>
+        </Container>
     );
 }
 

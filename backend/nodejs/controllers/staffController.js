@@ -100,8 +100,9 @@ const getStaffByPosition = async (req, res) => {
 }
 
 const getStaffByDepartment = async (req, res) => {
+    const { id } = req.params;
     try {
-        const staff = await Staff.find({ department: req.params.departmentId })
+        const staff = await Staff.find({ department: id })
             .populate('user').populate('department').populate('position');
         if (staff) {
             res.status(200).json({ staff });

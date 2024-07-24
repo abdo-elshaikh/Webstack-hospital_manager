@@ -13,6 +13,6 @@ const {
 
 router.route('/').get(protect, getServices).post(protect, admin, createService);
 router.route('/:id').get(protect, getService).put(protect, admin, updateService).delete(protect, admin, deleteService);
-router.route('/department').post(protect, getServiceByDepartment);
+router.route('/department/:id').get(protect, getServiceByDepartment);
 
 module.exports = router;

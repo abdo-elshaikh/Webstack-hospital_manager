@@ -63,19 +63,18 @@ const updateUserRole = async (req, res) => {
 }
 
 const updateUserActivation = async (req, res) => {
-    const {id} = req.params;
-    const {isActive} = req.body;
+    const { id } = req.params;
     try {
         const currentUser = await User.findById(id);
         if (currentUser) {
-            currentUser.isActive = isActive;
+            currentUser.isActive = !currentUser.isActive;
             const updatedUser = await currentUser.save();
-            res.status(200).json({user: updatedUser});
+            res.status(200).json({ user: updatedUser });
         } else {
-            res.status(404).json({message: 'User not found'});
+            res.status(404).json({ message: 'User not found' });
         }
     } catch (error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 }
 

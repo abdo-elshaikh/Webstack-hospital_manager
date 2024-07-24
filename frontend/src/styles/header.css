@@ -1,109 +1,34 @@
-/* src/styles/header.css */
-.header {
-    background-color: #4facfe;
-    padding: 10px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.header .navbar {
+    padding: 1rem;
 }
 
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    margin: 0 20px
-}
-
-.navbar-brand {
-    color: #fff;
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-.navbar-toggler {
-    display: none;
-    border: none;
-    background: none;
-    color: #fff;
-    font-size: 1.25rem;
-
-}
-
-.navbar-toggler-icon svg {
-    max-width: 50px;
-    height: 50px
-}
-
-.navbar-collapse {
-    display: block;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.navbar-collapse.show {
-    display: flex;
-}
-
-.navbar-nav {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.nav-item {
-    margin: 10px 0;
+.ml-auto {
+    margin-left: auto;
 }
 
 .nav-link {
-    color: #fff;
-    font-size: 1rem;
-    text-decoration: none;
-    transition: color 0.3s ease;
+    color: #000;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
 }
 
 .nav-link:hover {
-    color: #00f2fe;
+    color: #007bff;
 }
 
-.btn-link {
-    background: none;
-    border: none;
-    padding: 0;
+.navbar-nav {
+    margin-left: auto;
+}
+.nav-link.logout {
     color: #fff;
-    cursor: pointer;
+    background-color: #eb6a77;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
 }
-
-.btn-link:hover {
-    color: #00f2fe;
-}
-
-@media (min-width: 768px) {
-    .navbar-collapse {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    }
-    
-    .navbar-nav {
-        flex-direction: row;
-    }
-
-    .nav-item {
-        margin: 0 10px;
-    }
-
-    .navbar-toggler {
-        display: none;
-    }
-}
-
-@media (max-width: 762px) {
-    .navbar-toggler {
-        display: none;
-    }
-
-    .navbar-collapse {
-        display: block;
-    }  
+.nav-link.logout:hover {
+    background-color: #c82333;
 }

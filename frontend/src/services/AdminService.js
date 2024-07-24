@@ -11,7 +11,7 @@ const getHeaders = () => {
         };
     }
     return {};
-};
+}
 
 const getUsers = async () => {
     try {
@@ -19,13 +19,10 @@ const getUsers = async () => {
         return response.data;
     } catch (error) {
         if (error.response) {
-            // The request was made and the server responded with a status code outside of the range of 2xx
             return { error: error.response.data.message };
         } else if (error.request) {
-            // The request was made but no response was received
             return { error: "Network error: no response received" };
         } else {
-            // Something happened in setting up the request that triggered an error
             return { error: "Error in setting up the request" };
         }
     }
@@ -61,9 +58,9 @@ const updateUser = async (id, role) => {
     }
 };
 
-const updateUserActivation = async (id, isActive) => {
+const updateUserActivation = async (id) => {
     try {
-        const response = await axios.put(`${API_URL}/user/${id}/activation`, { isActive }, { headers: getHeaders() });
+        const response = await axios.put(`${API_URL}/user/activation/${id}`, {}, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         if (error.response) {

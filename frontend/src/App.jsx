@@ -1,75 +1,94 @@
-// src/App.jsx
 import { useState, useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Profile from './components/Profile';
-import Home from './components/Home';
+import Home from './components/Home/Home';
 import Login from './components/Login';
 import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import Register from './components/Register';
 import NotFound from './components/NotFound';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Admin from './components/Admin';
-
+import { Container } from 'react-bootstrap';
 import { getCurrentUser, logout } from './services/AuthService';
-import { BrowserRouter as Router, Route, Routes, json } from 'react-router-dom';
 import './app.css';
 
 const App = () => {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [isLogged, setIsLogged] = useState(false);
-
-    const handleLogout = async () => {
-        await logout();
-        setIsLogged(false);
-        setCurrentUser(null);
-    }
-
-    const handleLogIn = async (user) => {
-        setIsLogged(true);
-        setCurrentUser(user);
-    }
-
-    useEffect(() => {
-        const user = localStorage.getItem('user');
-        if (user) {
-            setCurrentUser(JSON.parse(user));
-            // console.log(currentUser._id);
-            setIsLogged(true);
-        } else {
-            getCurrentUser().then((response) => {
-                if (response.error) {
-                    setIsLogged(false);
-                    setCurrentUser(null);
-                } else {
-                    setIsLogged(true);
-                    setCurrentUser(response.user);
-                }
-            });
-        }
-    }, []);
-
-
     return (
         <Router>
-            <Header user={currentUser} handleLogout={handleLogout} isLogged={isLogged} />
-            <ToastContainer position="top-right"
-                autoClose={3000} hideProgressBar newestOnTop
-                closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-            <div className="main">
+            <MainApp />
+        </Router>
+    );
+};
+
+const MainApp = () => {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isLogged, setIsLogged] = useState(false);
+    const location = useLocation();
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                setCurrentUser(JSON.parse(storedUser));
+                setIsLogged(true);
+            } else {
+                try {
+                    const { user } = await getCurrentUser();
+                    setCurrentUser(user);
+                    setIsLogged(true);
+                } catch (error) {
+                    toast.error('Failed to fetch current user');
+                }
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    const handleLogIn = async (user) => {
+        setCurrentUser(user);
+        setIsLogged(true);
+    };
+
+    const handleLogout = async () => {
+        try {
+            const data = await logout();
+            if (data.error) {
+                toast.error(data.error);
+            } else {
+                setCurrentUser(null);
+                setIsLogged(false);
+                toast.success(data.success);
+            }
+        } catch (error) {
+            toast.error('Failed to log out');
+        }
+    };
+
+    const showHeader = !location.pathname.startsWith('/admin');
+
+    return (
+        <Container fluid className="d-flex flex-column min-vh-100">
+            {showHeader && <Header currentUser={currentUser} isLogged={isLogged} onLogout={handleLogout} />}
+            <Container fluid as="main" className="flex-grow-1">
                 <Routes>
-                    <Route path="/" element={<Home user={currentUser} isLogged={isLogged} />} />
-                    <Route path="/login" element={<Login handleLogIn={handleLogIn} />} />
-                    <Route path="/forgotPassword" element={<ForgotPassword />} />
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login onLogin={handleLogIn} />} />
                     <Route path="/register" element={<Register />} />
-                    <Route path="/profile/:id" element={<Profile />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/profile" element={<Profile />} />
                     <Route path="/admin/*" element={<Admin />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
-            </div>
+            </Container>
             <Footer />
-        </Router>
+            <ToastContainer />
+        </Container>
     );
-}
+};
+
 export default App;

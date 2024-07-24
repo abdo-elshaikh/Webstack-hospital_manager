@@ -14,7 +14,7 @@ const getHeaders = () => {
 
 const getservices = async () => {
     try {
-        const response = await axios.get(serviceUrl, {headers: getHeaders()});
+        const response = await axios.get(serviceUrl, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -23,8 +23,8 @@ const getservices = async () => {
 
 const getServiceById = async (id) => {
     try {
-        const response = await axios.get(`${serviceUrl}/${id}`, {headers: getHeaders()});
-        return response.data;
+        const response = await axios.get(`${serviceUrl}/${id}`, { headers: getHeaders() });
+        return response.data.services;
     } catch (error) {
         return { error: error.response.data.message || error.message };
     }
@@ -32,7 +32,7 @@ const getServiceById = async (id) => {
 
 const createService = async (service) => {
     try {
-        const response = await axios.post(serviceUrl, service, {headers: getHeaders()});
+        const response = await axios.post(serviceUrl, service, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -41,8 +41,7 @@ const createService = async (service) => {
 
 const updateService = async (id, service) => {
     try {
-        const response = await axios.put(`${serviceUrl}/${id}`, service, {headers: getHeaders()});
-        console.log(response.data);
+        const response = await axios.put(`${serviceUrl}/${id}`, service, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -51,20 +50,21 @@ const updateService = async (id, service) => {
 
 const deleteService = async (id) => {
     try {
-        const response = await axios.delete(`${serviceUrl}/${id}`, {headers: getHeaders()});
+        const response = await axios.delete(`${serviceUrl}/${id}`, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
     }
 }
 
-const getserviceBydepartment = async (service) => {
+const getServicesByDepartment = async (id) => {
     try {
-        const response = await axios.post(`${serviceUrl}/department`, service, {headers: getHeaders()});
+        const response = await axios.get(`${serviceUrl}/department/${id}`, { headers: getHeaders() });
+        // console.log(response.data)
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
     }
 
 }
-export { getservices, getServiceById, createService, updateService, deleteService, getserviceBydepartment };
+export { getservices, getServiceById, createService, updateService, deleteService, getServicesByDepartment };

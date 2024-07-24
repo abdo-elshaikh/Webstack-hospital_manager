@@ -83,11 +83,9 @@ const deleteService = async (req, res) => {
 }
 
 const getServiceByDepartment = async (req, res) => {
-    const service = req.body;
+    const {id} = req.params;
     try {
-        const services = await Service.find({
-            department: service.department
-        }).populate('department');
+        const services = await Service.find({ department: id }).populate('department');
         if (services) {
             res.status(200).json({ services });
         } else {

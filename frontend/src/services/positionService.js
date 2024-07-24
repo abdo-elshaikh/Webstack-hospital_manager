@@ -11,6 +11,7 @@ const getHeaders = () => {
     }
     return {};
 }
+
 const getPositions = async () => {
     try {
         const response = await axios.get(positionsUrl, { headers: getHeaders() });

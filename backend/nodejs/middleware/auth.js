@@ -1,33 +1,32 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const dotenv = require('dotenv');
 const generateToken = require('../utils/generateToken');
-
+const { sendEmail } = require('../utils/mailService');
+// const { sendSMS } = require('../utils/smsService');
+import dotenv from 'dotenv'
 dotenv.config();
 
 const register = async (req, res) => {
-    const { email, name, password, isActive, role } = req.body;
+    // console.log(req.body);
+    const { email, name, password, role } = req.body;
+    const isActive = role === process.env.USER_ROLE?  true : false;
     try {
-        let userExists = await User.findOne({ email });
+        const userExists = await User.findOne({email});
+        // console.log(userExists);
         if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+            res.status(400).json({ message: 'User already exists' });
+        } else {
+            const user = await User.create({ email, name, password, isActive, role });
+            if (user) {
+                const token = generateToken(user._id);
+                const { password, ...userWithoutPassword } = user._doc;
+                res.status(201).json({ user: userWithoutPassword, token, message: 'User registered successfully' });
+            } else {
+                res.status(400).json({ message: 'Invalid user data' });
+            }
         }
-
-        const newUser = await User.create({
-            name,
-            email,
-            password,
-            isActive: isActive || true,
-            role: role || process.env.USER_ROLE
-        });
-
-        if (newUser) {
-            const token = generateToken(newUser._id);
-            return res.status(201).json({ user: newUser, token, message: 'Successfully created new user' });
-        }
-        return res.status(401).json({ message: 'Invalid user data!' });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -39,71 +38,102 @@ const login = async (req, res) => {
             if (user.isActive) {
                 const token = generateToken(user._id);
                 const { password, ...userWithoutPassword } = user._doc;
-                return res.status(200).json({ user: userWithoutPassword, token, message: 'Successfully logged in!' });
+                res.status(200).json({ user: userWithoutPassword, token, message: 'Successfully logged in!' });
             } else {
-                return res.status(401).json({ message: 'User is not active' });
+                res.status(401).json({
+                    message: 'User is not active. Please contact the admin to activate your account'
+                });
             }
         } else {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            res.status(401).json({ message: 'Invalid email or password' });
         }
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
+
     try {
         const user = await User.findOne({ email });
+
         if (!user) {
-            return res.status(404).json({ message: 'User not found , please add correct mail or register' });
+            res.status(404).json({ message: 'User not found' });
         }
-        return res.json({ user: user, message: "Successfuly founded user, please reset password" });
+
+        const token = generateToken({ id: user._id });
+        const resetUrl = `${process.env.CLIENT_URL}/resetPassword/${token}`;
+        const message = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+        Please click on the following link, or paste this into your browser to complete the process:\n\n
+        ${resetUrl}\n\n
+        If you did not request this, please ignore this email and your password will remain unchanged.\n`;
+        const info = await sendEmail({
+            email: user.email,
+            subject: 'Password reset token',
+            message
+        });
+        if (info) {
+            res.status(200).json({ info, message: 'Password reset email sent' });
+        } else {
+            res.status(500).json({ message: 'Email could not be sent' });
+        }
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
 const resetPassword = async (req, res) => {
-    const { email, newPassword } = req.body;
+    const { password } = req.body;
+    const { token } = req.params;
+
+    if (!token) {
+        res.status(400).json({ message: 'Invalid reset token' });
+    }
+
     try {
-        const user = await User.findOne({ email });
-        if (user) {
-            user.password = newPassword;
-            await user.save();
-            return res.status(200).json({ message: 'Password reset successfully' });
-        } else {
-            return res.status(404).json({ message: 'User not found' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            res.status(404).json({ message: 'No user found with this id' });
         }
+
+        user.password = password;
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
 const logout = async (req, res) => {
-    return res.status(200).json({ message: 'Successfully logged out' });
+    res.status(200).json({ message: 'Successfully logged out' });
 };
 
 
 const protect = async (req, res, next) => {
-    // console.log(req.headers);
+    // console.log(req.headers.authorization);
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
     if (!token) {
-        return res.status(401).json({ message: 'Not authorized to access this route' });
+        res.status(401).json({ message: 'Not authorized to access this route' });
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         if (!user) {
-            return res.status(404).json({ message: 'No user found with this id' });
+            res.status(404).json({ message: 'No user found with this id' });
         }
         req.user = user;
         next();
     } catch (error) {
-        return res.status(401).json({ error: 'Not authorized to access this route' });
+        res.status(401).json({ message: 'Not authorized to access this route' });
     }
 };
 
@@ -111,7 +141,7 @@ const admin = (req, res, next) => {
     if (req.user && req.user.role === process.env.ADMIN_ROLE) {
         next();
     } else {
-        return res.status(401).json({ message: 'Not authorized as an admin' });
+        res.status(401).json({ message: 'Not authorized as an admin' });
     }
 };
 

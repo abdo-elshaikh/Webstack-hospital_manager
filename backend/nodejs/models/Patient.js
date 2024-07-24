@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const patientSchema = new mongoose.Schema({
+    code: {
+        type: Number,
+        required: true,
+        unique: [true, 'This Code Is Found'],
+    },
     name: {
         type: String,
         required: true
@@ -17,15 +22,14 @@ const patientSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
     create_by: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         require: true
+    },
+    description: {
+        type: String,
+        required: false 
     }
 }, {
     timestamps: true

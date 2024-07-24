@@ -1,77 +1,93 @@
 import axios from 'axios';
 
-const API_URL_LOGIN = 'http://localhost:5000/api/users/login';
-const API_URL_LOGOUT = 'http://localhost:5000/api/users/logout';
-const API_URL_REGISTER = 'http://localhost:5000/api/users/';
-const API_URL_USER = 'http://localhost:5000/api/users/profile';
+const API_BASE_URL = 'http://localhost:5000/api/users';
+
+const handleError = (error) => {
+    const message = error.response?.data?.message || 'An error occurred';
+    return { error: message };
+};
+
+const manageLocalStorage = (action, key, value) => {
+    if (action === 'set') {
+        localStorage.setItem(key, value);
+    } else if (action === 'remove') {
+        localStorage.removeItem(key);
+    }
+};
 
 const register = async (userData) => {
     try {
-        const response = await axios.post(API_URL_REGISTER, userData);
+        const response = await axios.post(`${API_BASE_URL}/`, userData);
+        console.log(response.data)
         return response.data;
     } catch (error) {
-        return { error: error.response.data.message || error.response.data.error };
+        return handleError(error);
     }
-}
+};
 
 const login = async (email, password) => {
     try {
-        const response = await axios.post(API_URL_LOGIN, { email, password });
-        if (response.data.token && response.data.user) {
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+        const response = await axios.post(`${API_BASE_URL}/login`, { email, password });
+        const { token, user } = response.data;
+        if (token && user) {
+            manageLocalStorage('set', 'token', token);
+            manageLocalStorage('set', 'user', JSON.stringify(user));
         }
-        console.log(response.data);
         return response.data;
     } catch (error) {
-        return { error: error.response.data.message };
+        return handleError(error);
     }
-}
+};
 
 const logout = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
         return { error: 'Token not found' };
     }
-    const response = await axios.post(API_URL_LOGOUT, {}, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    return response.data;
-}
+    try {
+        await axios.post(`${API_BASE_URL}/logout`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        manageLocalStorage('remove', 'token');
+        manageLocalStorage('remove', 'user');
+        return { success: "loged out" };
+    } catch (error) {
+        return handleError(error);
+    }
+};
 
 const forgotPassword = async (email) => {
     try {
-        const response = await axios.post(API_URL_REGISTER + 'forgotpassword', { email });
+        const response = await axios.post(`${API_BASE_URL}/forgotpassword`, { email });
+        console.log(response.data);
         return response.data;
     } catch (error) {
-        return { error: error.response.data.message || error.response.data.error };
+        return handleError(error);
     }
-}
+};
 
-const resetPassword = async (email, newPassword) => {
+const resetPassword = async (token, password) => {
     try {
-        const response = await axios.put(API_URL_REGISTER + 'resetpassword', { email, newPassword });
+        const response = await axios.put(`${API_BASE_URL}/resetpassword/${token}`, { password });
         return response.data;
     } catch (error) {
-        return { error: error.response.data.message || error.response.data.error };
+        return handleError(error);
     }
-}
+};
 
 const getCurrentUser = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
         return { error: 'Token not found' };
     }
-    const response = await axios.get(API_URL_USER, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
-    return response.data.user;
-}
+    try {
+        const response = await axios.get(`${API_BASE_URL}/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data.user;
+    } catch (error) {
+        return handleError(error);
+    }
+};
 
 export { register, login, logout, getCurrentUser, forgotPassword, resetPassword };
