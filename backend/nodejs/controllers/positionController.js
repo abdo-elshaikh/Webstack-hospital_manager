@@ -27,14 +27,11 @@ const getPositions = async (req, res) => {
 }
 
 const createPosition = async (req, res) => {
-    const position = new Position({
-        name: req.body.name,
-        description: req.body.description,
-    });
+    const {name, description} = req.body;
     try {
-        const newPosition = await position.save();
+        const newPosition = await Position.create({name, description});
         if (newPosition) {
-            res.status(201).json({ message: 'Position created' });
+            res.status(201).json({ message: 'Position created', position: newPosition });
         } else {
             res.status(400).json({ message: 'Invalid position data '});
         }

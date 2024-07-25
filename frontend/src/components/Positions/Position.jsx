@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getPositions, createPosition, updatePosition, deletePosition } from '../../services/positionService';
-import Modal from '../../components/Modal';
+import { Modal, Button, Table, Alert, Dropdown, DropdownButton, DropdownItem, Toast, Form, FormControl, FormGroup, FormLabel, FormSelect, ToastHeader } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import '../../styles/department.css';
 
@@ -66,73 +66,61 @@ const Position = () => {
         }
     }
     return (
-        <div className="department-container">
-            <div className="department-header">
-                <h1>Positions Manager</h1>
-                <button onClick={() => setIsModalOpen(true)}>Add New Position</button>
-            </div>
-            <Modal isOpen={IsModalOpen} onClose={() => {
-                setPosition({ name: '', description: '' });
-                setIsEditing(false);
-                setIsModalOpen(false);
-            }}>
-                <h2>{isEditing ? 'Edit Position' : 'Add New Position'}</h2>
-                <form onSubmit={handleCreateOrUpdate} className='staff-form'>
-                    <div className="form-group">
-                        <label>Position</label>
-                        <input
-                            type="text"
-                            value={position.name}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Description</label>
-                        <input
-                            type="text"
-                            value={position.description}
-                            onChange={(e) => setPosition({ ...position, description: e.target.value })}
-                            required
-                        />
-                    </div>
-                    <button type="submit" className="btn btn-primary">
-                        {isEditing ? 'Update' : 'Create'}
-                    </button>
-                    <button type='button' onClick={
-                        () => {
-                            setPosition({ name: '', description: '' });
-                            setIsEditing(false);
-                        }
-                    } className='btn'>
-                        Create New
-                    </button>
-                    <button type='button' onClick={() => setIsModalOpen(false)}>Cancel</button>
-                </form>
+        <div>
+            <Button onClick={() => setIsModalOpen(true)}>Create Position</Button>
+            <Modal show={IsModalOpen} onHide={() => setIsModalOpen(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>{isEditing ? 'Edit Position' : 'Create Position'}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <FormGroup>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl
+                                type='text'
+                                name='name'
+                                value={position.name}
+                                onChange={handleInputChange}
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl
+                                as='textarea'
+                                name='description'
+                                value={position.description}
+                                onChange={handleInputChange}
+                            />
+                        </FormGroup>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button onClick={handleCreateOrUpdate}>{isEditing ? 'Edit' : 'Create'}</Button>
+                </Modal.Footer>
             </Modal>
-            <hr />
-            <table className="table">
+            <Table striped bordered hover>
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Name</th>
                         <th>Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {positions.map((pos) => (
+                    {positions.map((pos, index) => (
                         <tr key={pos._id}>
+                            <td>{index + 1}</td>
                             <td>{pos.name}</td>
                             <td>{pos.description}</td>
                             <td>
-                                <button onClick={() => handleEdit(pos._id)}>Edit</button>
-                                <button onClick={() => handleDelete(pos._id)}>Delete</button>
+                                <Button onClick={() => handleEdit(pos._id)}>Edit</Button>
+                                <Button onClick={() => handleDelete(pos._id)}>Delete</Button>
                             </td>
                         </tr>
                     ))}
-
                 </tbody>
-            </table>
+            </Table>
         </div>
     );
 }

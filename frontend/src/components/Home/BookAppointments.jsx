@@ -7,14 +7,10 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom'
 import '../../styles/home.css';
 
-const BookAppointments = ({currentUser}) => {
-    // const currentUser = JSON.parse(localStorage.getItem('user'));
-    // console.log(currentUser);
-    const navigate = useNavigate()
-    const [departments, setDepartments] = useState([]);
-    const [services, setServices] = useState([]);
-    const [appointment, setAppointment] = useState({
-        user: JSON.parse(localStorage.getItem('user')),
+const BookAppointments = ({ user }) => {
+    user? user : JSON.parse(localStorage.getItem('user'));
+    const emptyAppointment = {
+        user: user ? user._id : null,
         department: '',
         service: '',
         name: '',
@@ -22,20 +18,22 @@ const BookAppointments = ({currentUser}) => {
         phone: '',
         address: '',
         reason: '',
-    });
-
+    }
+    const navigate = useNavigate()
+    const [departments, setDepartments] = useState([]);
+    const [services, setServices] = useState([]);
+    const [appointment, setAppointment] = useState(emptyAppointment);
     const handleAppointment = (e) => {
         const { name, value } = e.target;
         setAppointment({ ...appointment, [name]: value });
     };
 
     const handleAppointmentSubmit = async (e) => {
-        e.preventDefault();
-        const currentUser = JSON.parse(localStorage.getItem('user'));
-        if (!currentUser) {
+        if (!user) {
             toast.error('Please login to book an appointment or register');
-            return;
+            navigate('/login');
         }
+        e.preventDefault();
         bookAppointment(appointment).then((data) => {
             if (data.error) {
                 toast.error(data.error);
@@ -62,6 +60,7 @@ const BookAppointments = ({currentUser}) => {
                 toast.error(data.error);
             } else {
                 setServices(data.services);
+                setAppointment(emptyAppointment);
             }
         });
     };
@@ -110,7 +109,8 @@ const BookAppointments = ({currentUser}) => {
                             <FormLabel>Reason</FormLabel>
                             <FormControl type="text" name="reason" onChange={handleAppointment} required />
                         </FormGroup>
-                        <Button type="submit" className="btn btn-primary">Book Appointment</Button>
+                        <Button type="submit"
+                            className="btn btn-primary w-100">Book Appointment</Button>
                     </Form>
                 </Col>
                 <Col md={6} className="d-none d-md-block">

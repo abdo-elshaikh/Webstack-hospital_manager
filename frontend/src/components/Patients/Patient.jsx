@@ -9,7 +9,7 @@ import {
 import { useState, useEffect } from 'react';
 import { getCurrentUser } from '../../services/AuthService';
 import { toast } from 'react-toastify';
-import { Modal, Button, Form, Table } from 'react-bootstrap';
+import { Modal, Button, Table, Row, Col, Form, FormControl, FormGroup, FormLabel, FormSelect, Dropdown } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import '../../styles/patient.css';
@@ -147,20 +147,37 @@ const Patient = ({ currentUser }) => {
     };
 
     return (
-        <div>
-            <div className="search">
-                <Form onSubmit={handleSearch} className="search-form">
-                    <Form.Group className="search-group">
-                        <Form.Control as="select" value={searchType} onChange={handleSearchTypeChange}>
-                            <option value="name">Name</option>
-                            <option value="code">Code</option>
-                        </Form.Control>
-                        <Form.Control type="text" placeholder="Search" value={search} onChange={handleSearchChange} />
-                        <Button type="submit">Search</Button>
-                    </Form.Group>
-                </Form>
+        <div className='patient'>
+            <div className='patient-header'>
+                <h1>Patients</h1>
+                <Button onClick={() => setIsModalOpen(true)}>Add Patient</Button>
             </div>
-            <Button onClick={() => setIsModalOpen(true)}>Add New Patient</Button>
+            <Row className='search'>
+                <Col md={12}>
+                    <Form>
+                        <Row>
+                            <Col md={6}>
+                                <FormGroup>
+                                    <FormLabel>Search</FormLabel>
+                                    <FormControl type='text' name='search' value={search} onChange={handleSearchChange} />
+                                </FormGroup>
+                            </Col>
+                            <Col md={4}>
+                                <FormGroup>
+                                    <FormLabel>Search By</FormLabel>
+                                    <FormSelect name='searchType' value={searchType} onChange={handleSearchTypeChange}>
+                                        <option value='name'>Name</option>
+                                        <option value='code'>Code</option>
+                                    </FormSelect>
+                                </FormGroup>
+                            </Col>
+                            <Col md={2}>
+                                <Button onClick={handleSearch}>Search</Button>
+                            </Col>
+                        </Row>
+                    </Form>
+                </Col>
+            </Row>
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -170,54 +187,47 @@ const Patient = ({ currentUser }) => {
                         <th>Address</th>
                         <th>Phone</th>
                         <th>Description</th>
-                        <th>Action</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {searchResult.length > 0
-                        ? searchResult.map((patient) => (
-                            <tr key={patient._id}>
-                                <td>{patient.code}</td>
-                                <td>{patient.name}</td>
-                                <td>{patient.age}</td>
-                                <td>{patient.address}</td>
-                                <td>{patient.phone}</td>
-                                <td>{patient.description}</td>
+                        ? searchResult.map((p) => (
+                            <tr key={p._id}>
+                                <td>{p.code}</td>
+                                <td>{p.name}</td>
+                                <td>{p.age}</td>
+                                <td>{p.address}</td>
+                                <td>{p.phone}</td>
+                                <td>{p.description}</td>
                                 <td>
-                                    <Link to={`/admin/appointments/patient/${patient._id}`}>View</Link>
-                                    <Button
-                                        onClick={() => {
-                                            setPatient(patient);
-                                            setIsEdit(true);
-                                            setIsModalOpen(true);
-                                        }}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button onClick={() => handleDelete(patient._id)}>Delete</Button>
                                 </td>
                             </tr>
                         ))
-                        : patients.map((patient) => (
-                            <tr key={patient._id}>
-                                <td>{patient.code}</td>
-                                <td>{patient.name}</td>
-                                <td>{patient.age}</td>
-                                <td>{patient.address}</td>
-                                <td>{patient.phone}</td>
-                                <td>{patient.description}</td>
+                        : patients.map((p) => (
+                            <tr key={p._id}>
+                                <td>{p.code}</td>
+                                <td>{p.name}</td>
+                                <td>{p.age}</td>
+                                <td>{p.address}</td>
+                                <td>{p.phone}</td>
+                                <td>{p.description}</td>
                                 <td>
-                                    <Link to={`/admin/appointments/patient/${patient._id}`}>View</Link>
-                                    <Button
-                                        onClick={() => {
-                                            setPatient(patient);
-                                            setIsEdit(true);
-                                            setIsModalOpen(true);
-                                        }}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button onClick={() => handleDelete(patient._id)}>Delete</Button>
+                                    <Dropdown>
+                                        <Dropdown.Toggle variant='success' id='dropdown-basic'>
+                                            Actions
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item as={Link} to={`/admin/appointments/patient/${p._id}`}>Add Appointment</Dropdown.Item>
+                                            <Dropdown.Item onClick={() => {
+                                                setPatient(p);
+                                                setIsEdit(true);
+                                                setIsModalOpen(true);
+                                            }
+                                            }>Edit</Dropdown.Item>
+                                            <Dropdown.Item onClick={() => handleDelete(p._id)}>Delete</Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>                                    
                                 </td>
                             </tr>
                         ))}
@@ -228,60 +238,33 @@ const Patient = ({ currentUser }) => {
                     <Modal.Title>{isEdit ? 'Edit Patient' : 'Add Patient'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Form onSubmit={handleCreateOrEdit}>
-                        <Form.Group controlId="name">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                value={patient.name}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="age">
-                            <Form.Label>Age</Form.Label>
-                            <Form.Control
-                                type="number"
-                                name="age"
-                                value={patient.age}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="address">
-                            <Form.Label>Address</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="address"
-                                value={patient.address}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="phone">
-                            <Form.Label>Phone</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="phone"
-                                value={patient.phone}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="description">
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                name="description"
-                                value={patient.description}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form.Group>
-                        <Button type="submit">{isEdit ? 'Edit' : 'Add'}</Button>
+                    <Form>
+                        <FormGroup>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl type='text' name='name' value={patient.name} onChange={handleInputChange} />
+                        </FormGroup>
+                        <FormGroup>
+                            <FormLabel>Age</FormLabel>
+                            <FormControl type='number' name='age' value={patient.age} onChange={handleInputChange} />
+                        </FormGroup>
+                        <FormGroup>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl type='text' name='address' value={patient.address} onChange={handleInputChange} />
+                        </FormGroup>
+                        <FormGroup>
+                            <FormLabel>Phone</FormLabel>
+                            <FormControl type='text' name='phone' value={patient.phone} onChange={handleInputChange} />
+                        </FormGroup>
+                        <FormGroup>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl type='text' name='description' value={patient.description} onChange={handleInputChange} />
+                        </FormGroup>
                     </Form>
                 </Modal.Body>
+                <Modal.Footer>
+                    <Button onClick={handleCreateOrEdit}>{isEdit ? 'Edit' : 'Add'}</Button>
+                    <Button onClick={handleModalClose}>Close</Button>
+                </Modal.Footer>
             </Modal>
         </div>
     );

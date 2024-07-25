@@ -59,7 +59,8 @@ const deletePatient = async (id) => {
 
 const getPatientByName = async (name) => {
     try {
-        const response = await axios.delete(`${positionsUrl}/name`, { name }, { headers: getHeaders() });
+        const response = await axios.get(`${positionsUrl}/name`, { name }, { headers: getHeaders() });
+        console.log(response.data);
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };

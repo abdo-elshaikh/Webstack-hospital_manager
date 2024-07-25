@@ -1,4 +1,4 @@
-import React from 'react';
+import {useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Container, Row, Col } from 'react-bootstrap';
 import '../../styles/home.css';
@@ -8,6 +8,7 @@ const HeroSection = ({ user, isLogged, altStyle }) => {
         user = JSON.parse(localStorage.getItem('user'));
         if (user) isLogged = true;
     }
+
 
     return (
         <Container fluid className={`hero-section ${altStyle ? 'hero-section-alt' : ''}`}>

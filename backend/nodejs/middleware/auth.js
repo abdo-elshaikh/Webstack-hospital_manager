@@ -5,13 +5,30 @@ const { sendEmail } = require('../utils/mailService');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const register = async (req, res) => {
-    // console.log(req.body);
-    const { email, name, password, role } = req.body;
-    const isActive = role === process.env.USER_ROLE?  true : false;
+const initAdmin = async () => {
     try {
-        const userExists = await User.findOne({email});
-        // console.log(userExists);
+        const admin = await User.findOne({ role: 'admin' });
+        if (!admin) {
+            const adminUser = new User({
+                name: 'Admin',
+                email: 'admin@mail.com',
+                password: '123456',
+                role: 'admin',
+                isActive: true
+            });
+            await adminUser.save();
+            console.log('Admin created');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const register = async (req, res) => {
+    const { email, name, password, role } = req.body;
+    const isActive = role === process.env.USER_ROLE ? true : false;
+    try {
+        const userExists = await User.findOne({ email });
         if (userExists) {
             res.status(400).json({ message: 'User already exists' });
         } else {
@@ -110,12 +127,16 @@ const resetPassword = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-    res.status(200).json({ message: 'Successfully logged out' });
+    try {
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 
 
 const protect = async (req, res, next) => {
-    // console.log(req.headers.authorization);
+    console.log(req.headers);
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
@@ -144,4 +165,5 @@ const admin = (req, res, next) => {
     }
 };
 
-module.exports = { register, login, protect, admin, forgotPassword, resetPassword, logout };
+
+module.exports = { register, login, protect, admin, forgotPassword, resetPassword, logout, initAdmin };

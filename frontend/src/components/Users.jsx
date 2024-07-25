@@ -1,6 +1,6 @@
-import { getUsers, deleteUser, getUserById, updateUser, updateUserActivation } from '../services/AdminService'
+import { getUsers, deleteUser, updateUser, updateUserActivation } from '../services/AdminService'
 import { useState, useEffect } from 'react';
-import { Modal, Button, Table, Alert, Dropdown, DropdownButton, DropdownItem } from 'react-bootstrap';
+import { Table,  Dropdown, DropdownButton, } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import '../styles/admin.css';
 import { Link } from 'react-router-dom';

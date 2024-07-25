@@ -11,12 +11,6 @@ const Header = ({ currentUser, handleLogout, isLogedIn }) => {
         navigate('/login');
     }
 
-    // useEffect(() => {
-    //     if (!isLogedIn) {
-    //         navigate('/login');
-    //     }
-    // }, [isLogedIn]);
-
     return (
         <header className="header">
             <Navbar bg="light" expand="lg">
@@ -24,7 +18,7 @@ const Header = ({ currentUser, handleLogout, isLogedIn }) => {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="ml-auto">
-                        {currentUser ? (
+                        {isLogedIn ? (
                             <>
                                 {currentUser?.role === 'admin' ?
                                     <>

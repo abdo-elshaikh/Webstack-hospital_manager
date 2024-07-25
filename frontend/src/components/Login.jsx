@@ -34,10 +34,6 @@ const Login = ({ handleLogIn }) => {
         navigate('/');
     }
 
-    useEffect(() => {
-        document.title = 'Login - Hospital Manager';
-    }, []);
-
     return (
         <Container className="justify-content-md-center">
             <Row className="justify-content-md-center">

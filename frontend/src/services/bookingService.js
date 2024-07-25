@@ -14,6 +14,7 @@ const getHeaders = () => {
 const getAllBooks = async () => {
     try {
         const response = await axios.get(bookUrl, { headers: getHeaders() });
+        console.log(response.data);
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };

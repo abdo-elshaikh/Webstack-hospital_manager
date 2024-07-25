@@ -71,9 +71,11 @@ const deletePatient = async (req, res) => {
 const getPatientByName = async (req, res) => {
     const { name } = req.body;
     try {
-        const patient = await Patient.find({ name: name });
-        if (patient) {
-            res.status(200).json({ patient, message: `Success get ${patient.name}` });
+        const patients = await Patient.find({ name: {
+            $regex: name,
+        } });
+        if (patients) {
+            res.status(200).json({ patients, message: `Success get patients` });
         } else {
             res.status(404).json({ message: 'Patient not found' });
         }
@@ -85,9 +87,9 @@ const getPatientByName = async (req, res) => {
 const getPatientByCode = async (req, res) => {
     const { code } = req.body;
     try {
-        const patient = await Patient.find({ code: code });
-        if (patient) {
-            res.status(200).json({ patient, message: `Success get ${patient.name}` });
+        const patients = await Patient.find({ code: code });
+        if (patients) {
+            res.status(200).json({ patients, message: `Success get patients` });
         } else {
             res.status(404).json({ message: 'Patient not found' });
         }

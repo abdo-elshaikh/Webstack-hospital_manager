@@ -40,7 +40,7 @@ const Home = ({ user, isLogged }) => {
             <HeroSection user={user} isLogged={isLogged} />
             <AboutUs />
             <Gallery />
-            <BookAppointments currentUser={user}/>
+            <BookAppointments user={user}/>
             <ContactUs />
             <Location />
             <div className="tap-to-top" onClick={tapToTop}>

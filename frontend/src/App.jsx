@@ -55,15 +55,13 @@ const MainApp = () => {
         logout().then((data) => {
             if (data.error) {
                 toast.error(data.error);
-                return;
             }
             setCurrentUser(null);
             setIsLogedIn(false);
-            toast.success('Logged out successfully');
+            toast.success(data.message);
         })
     };
 
-    // hide header in admin page
     const location = useLocation();
     const hideHeader = location.pathname.includes('/admin');
     return (
@@ -73,8 +71,8 @@ const MainApp = () => {
                 <Route path="/" element={<Home user={currentUser}  isLogged={isLogedIn}/>} />
                 <Route path="/login" element={<Login handleLogIn={handleLogIn} />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/forgotPassword" element={<ForgotPassword />} />
+                <Route path="/resetPassword/:token" element={<ResetPassword />} />
                 <Route path="/profile" element={<Profile currentUser={currentUser}/>} />
                 <Route path="/admin/*" element={<Admin currentUser={currentUser} />} />
                 <Route path="*" element={<NotFound />} />

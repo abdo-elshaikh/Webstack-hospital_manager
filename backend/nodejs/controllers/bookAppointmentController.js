@@ -20,7 +20,7 @@ const bookAppointment = async (req, res) => {
         const savedAppointment = await newAppointment.save();
         res.status(200).json({ appointment: savedAppointment, message: "Thanks we will contact you soon" });
     } catch (error) {
-        console.error("Error saving appointment:", error);
+        // console.error("Error saving appointment:", error);
         res.status(500).json({ message: error.message });
     }
 };
