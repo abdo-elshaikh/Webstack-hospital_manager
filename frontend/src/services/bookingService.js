@@ -26,7 +26,7 @@ const bookAppointment = async (appointment) => {
         const response = await axios.post(bookUrl, { appointment }, { headers: getHeaders() });
         return response.data;
     } catch (error) {
-        return { error: error.message };
+        return { error: "Error in Server: " + error.response.data.message };
     }
 }
 

@@ -4,21 +4,19 @@ const Department = require('../models/Department');
 
 const bookAppointment = async (req, res) => {
     const { appointment } = req.body;
-    // console.log("Received appointment:", appointment);
+    console.log("Received appointment:", appointment);
     try {
         const newAppointment = new BookAppointment({
-            user: appointment.user,
-            department: appointment.department,
-            service: appointment.service,
-            reason: appointment.reason,
-            name: appointment.name,
-            age: appointment.age,
-            address: appointment.address,
-            phone: appointment.phone
+            ...appointment,
+            user: req.user._id,
         });
-        // console.log("Saving new appointment:", newAppointment);
         const savedAppointment = await newAppointment.save();
-        res.status(200).json({ appointment: savedAppointment, message: "Thanks we will contact you soon" });
+        console.log("Saved appointment:", savedAppointment);
+        if (savedAppointment) {
+            res.status(201).json({ appointment: savedAppointment,  message: "Appointment booked successfully!" });
+        } else {
+            res.status(400).json({ message: "Error booking appointment!" });
+        }
     } catch (error) {
         // console.error("Error saving appointment:", error);
         res.status(500).json({ message: error.message });

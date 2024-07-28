@@ -50,6 +50,9 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
+        if (user.googleId || user.facebookId) {
+            res.json({ message: user.googleId ? `You have registered with Google. Please login with Google` : `You have registered with Facebook. Please login with Facebook` });
+        }
         if (user && (await user.matchPassword(password))) {
             if (user.isActive) {
                 const token = generateToken(user._id);
@@ -136,7 +139,7 @@ const logout = async (req, res) => {
 
 
 const protect = async (req, res, next) => {
-    console.log(req.headers);
+    // console.log(req.headers);
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];

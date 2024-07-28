@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/AuthService';
-import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
@@ -21,6 +21,19 @@ const Login = ({ handleLogIn }) => {
 
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const user = params.get('user');
+
+        if (token && user) {
+            const parsedUser = JSON.parse(decodeURIComponent(user));
+            handleLogIn(parsedUser);
+            toast.success(`Welcome back: ${parsedUser.name}`);
+            navigate('/');
+        }
+    }, [handleLogIn, navigate]);
+
     const onSubmit = async (data) => {
         const response = await login(data.email, data.password);
 
@@ -28,10 +41,18 @@ const Login = ({ handleLogIn }) => {
             toast.error(response.error);
             return;
         }
-        
+
         toast.success(`Welcome back: ${response.user.name}`);
         handleLogIn(response.user);
         navigate('/');
+    }
+
+    const handleGoogleLogin = () => {
+        window.location = 'http://localhost:5000/auth/google'
+    }
+
+    const handleFacebookLogin = () => {
+        window.location = 'http://localhost:5000/auth/facebook'
     }
 
     return (
@@ -78,6 +99,14 @@ const Login = ({ handleLogIn }) => {
                             Don't have an account? <Link to="/register">Register</Link>
                         </div>
                     </Form>
+                </Col>
+            </Row>
+            <Row className="justify-content-md-center">
+                <Col md={6}>
+                    <div className="text-center mt-3">
+                        <Button variant="primary" onClick={handleGoogleLogin}>Login with Google</Button>
+                        <Button variant="primary" onClick={handleFacebookLogin} className="ms-3">Login with Facebook</Button>
+                    </div>
                 </Col>
             </Row>
         </Container>

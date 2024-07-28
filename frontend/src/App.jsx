@@ -28,23 +28,21 @@ const MainApp = () => {
     const [isLogedIn, setIsLogedIn] = useState(false);
 
     useEffect(() => {
-        fetchCurrentUser();
-    }, [isLogedIn]);
-
-    const fetchCurrentUser = async () => {
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) {
             getCurrentUser().then((data) => {
                 if (data.error) {
-                    setIsLogedIn(false);
+                    toast.error(data.error);
                 } else {
                     setCurrentUser(data.user);
                     setIsLogedIn(true);
                 }
             });
+        } else {
+            setCurrentUser(user);
+            setIsLogedIn(true);
         }
-        setCurrentUser(user);
-    };
+    }, []);
 
     const handleLogIn = (user) => {
         setCurrentUser(user);
@@ -68,12 +66,12 @@ const MainApp = () => {
         <Container>
             {!hideHeader && <Header currentUser={currentUser} handleLogout={handleLogout} isLogedIn={isLogedIn} />}
             <Routes>
-                <Route path="/" element={<Home user={currentUser}  isLogged={isLogedIn}/>} />
+                <Route path="/" element={<Home user={currentUser} isLogged={isLogedIn} />} />
                 <Route path="/login" element={<Login handleLogIn={handleLogIn} />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgotPassword" element={<ForgotPassword />} />
                 <Route path="/resetPassword/:token" element={<ResetPassword />} />
-                <Route path="/profile" element={<Profile currentUser={currentUser}/>} />
+                <Route path="/profile" element={<Profile currentUser={currentUser} />} />
                 <Route path="/admin/*" element={<Admin currentUser={currentUser} />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>

@@ -63,8 +63,9 @@ const resetPassword = async (token, password) => {
 const getCurrentUser = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-        return { error: 'Token not found' };
+        return ;
     }
+    
     try {
         const response = await axios.get(`${API_BASE_URL}/profile`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -75,4 +76,4 @@ const getCurrentUser = async () => {
     }
 };
 
-export { register, login, logout, getCurrentUser, forgotPassword, resetPassword };
+export { register, login, logout, getCurrentUser, forgotPassword, resetPassword, };
