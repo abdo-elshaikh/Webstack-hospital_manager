@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const positionsUrl = 'http://localhost:5000/api/appointments';
+const URL = 'http://localhost:5000/api/appointments';
 
 const getHeaders = () => {
     const token = localStorage.getItem('token');
@@ -14,7 +14,7 @@ const getHeaders = () => {
 
 const getAppointments = async () => {
     try {
-        const response = await axios.get(positionsUrl, { headers: getHeaders() });
+        const response = await axios.get(URL, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.message };
@@ -23,7 +23,7 @@ const getAppointments = async () => {
 
 const getAppointmentById = async (id) => {
     try {
-        const response = await axios.get(`${positionsUrl}/${id}`, { headers: getHeaders() });
+        const response = await axios.get(`${URL}/${id}`, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -32,7 +32,7 @@ const getAppointmentById = async (id) => {
 
 const createAppointment = async (appointment) => {
     try {
-        const response = await axios.post(positionsUrl, { appointment }, { headers: getHeaders() });
+        const response = await axios.post(URL, { appointment }, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -41,7 +41,7 @@ const createAppointment = async (appointment) => {
 
 const updateAppointment = async (id, appointment) => {
     try {
-        const response = await axios.put(`${positionsUrl}/${id}`, appointment, { headers: getHeaders() });
+        const response = await axios.put(`${URL}/${id}`, appointment, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -50,7 +50,7 @@ const updateAppointment = async (id, appointment) => {
 
 const deleteAppointment = async (id) => {
     try {
-        const response = await axios.delete(`${positionsUrl}/${id}`, { headers: getHeaders() });
+        const response = await axios.delete(`${URL}/${id}`, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -59,7 +59,7 @@ const deleteAppointment = async (id) => {
 
 const changeAppointmentStatus = async (id, status) => {
     try {
-        const response = await axios.put(`${positionsUrl}/${id}/status`, { status }, { headers: getHeaders() });
+        const response = await axios.put(`${URL}/status/${id}`, { status }, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
@@ -68,7 +68,7 @@ const changeAppointmentStatus = async (id, status) => {
 
 const getAppointmentsByPatient = async (patientId) => {
     try {
-        const response = await axios.get(`${positionsUrl}/patient/${patientId}`, { headers: getHeaders() });
+        const response = await axios.get(`${URL}/patient/${patientId}`, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };

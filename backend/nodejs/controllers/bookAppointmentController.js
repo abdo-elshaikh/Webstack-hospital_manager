@@ -43,7 +43,12 @@ const getBookingBetweenDate = async (req, res) => {
             .populate('user')
             .populate('department')
             .populate('service');
-        res.status(200).json({ appointments });
+        if (appointments) {
+            console.log(appointments);
+            res.status(200).json({ appointments });
+        } else {
+            res.status(404).json({ message: "No appointments found between the given dates" });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

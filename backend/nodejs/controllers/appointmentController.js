@@ -33,7 +33,7 @@ const getAllAppointments = async (req, res) => {
         const appointments = await Appointment.find()
             .populate('service')
             .populate('staff')
-            .populate('patient').sort({date: 1});
+            .populate('patient').sort({ date: 1 });
 
         if (appointments) {
             return res.status(200).json({ appointments });
@@ -46,7 +46,7 @@ const getAllAppointments = async (req, res) => {
 };
 
 const getAppointmentById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     try {
         const appointment = await Appointment.findById(id)
             .populate('service')
@@ -64,7 +64,7 @@ const getAppointmentById = async (req, res) => {
 };
 
 const updateAppointment = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     const appointment = req.body;
     try {
         const updatedAppointment = await Appointment.findByIdAndUpdate(id, appointment, { new: true });
@@ -104,7 +104,7 @@ const deleteAll = async (req, res) => {
 };
 
 const changeStatus = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
     try {
@@ -127,12 +127,13 @@ const changeStatus = async (req, res) => {
 };
 
 const getAppointmentsByPatient = async (req, res) => {
-    const {patientId} = req.params;
+    const { patientId } = req.params;
     try {
         const appointments = await Appointment.find({ patient: patientId })
             .populate('service')
             .populate('staff')
-            .populate('patient');
+            .populate('patient')
+            .populate('department');
 
         if (appointments) {
             return res.status(200).json({ appointments });

@@ -1,59 +1,62 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../services/AuthService';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
-import { useForm } from "react-hook-form";
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
-import { Link } from 'react-router-dom';
-import * as yup from "yup";
+import * as yup from 'yup';
 import '../styles/login.css';
 
 const schema = yup.object().shape({
     email: yup.string().email('Invalid email').required('Email is required'),
-    password: yup.string().required('Password is required')
+    password: yup.string().required('Password is required'),
 });
 
 const Login = ({ handleLogIn }) => {
     const { register, handleSubmit, formState: { errors } } = useForm({
-        resolver: yupResolver(schema)
+        resolver: yupResolver(schema),
     });
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
-        const user = params.get('user');
-
-        if (token && user) {
+        const handleLoginRedirect = () => {
+            const { searchParams } = new URL(window.location.href);
+            const token = searchParams.get('token');
+            const user = searchParams.get('user');
+            
+            if (!token && !user) {
+                return;
+            } 
             const parsedUser = JSON.parse(decodeURIComponent(user));
             handleLogIn(parsedUser);
             toast.success(`Welcome back: ${parsedUser.name}`);
             navigate('/');
-        }
-    }, [handleLogIn, navigate]);
+        };
+
+        handleLoginRedirect();
+    }, [navigate]);
 
     const onSubmit = async (data) => {
         const response = await login(data.email, data.password);
-
+        console.log(response.user);
         if (response.error) {
             toast.error(response.error);
             return;
         }
-
+        handleLogIn(response)
         toast.success(`Welcome back: ${response.user.name}`);
-        handleLogIn(response.user);
         navigate('/');
-    }
+    };
 
     const handleGoogleLogin = () => {
-        window.location = 'http://localhost:5000/auth/google'
-    }
+        window.location = 'http://localhost:5000/auth/google';
+    };
 
     const handleFacebookLogin = () => {
-        window.location = 'http://localhost:5000/auth/facebook'
-    }
+        window.location = 'http://localhost:5000/auth/facebook';
+    };
 
     return (
         <Container className="justify-content-md-center">
@@ -92,11 +95,11 @@ const Login = ({ handleLogIn }) => {
                         </Button>
 
                         <div className="mt-3">
-                            <Link to="/forgotPassword">Forgot password?</Link>
+                            <Link to="/forgot-password">Forgot password?</Link>
                         </div>
 
                         <div className="mt-3">
-                            Don't have an account? <Link to="/register">Register</Link>
+                            Don &apost have an account? <Link to="/register">Register</Link>
                         </div>
                     </Form>
                 </Col>
@@ -111,6 +114,7 @@ const Login = ({ handleLogIn }) => {
             </Row>
         </Container>
     );
-}
+};
 
 export default Login;
+

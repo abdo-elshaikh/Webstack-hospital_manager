@@ -1,4 +1,4 @@
-import { Modal, Button, Form, Table } from 'react-bootstrap';
+import { Modal, Button, Form, Table, Row, Col } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import { useState, useEffect } from 'react';
 import { createAppointment, getAppointmentsByPatient, deleteAppointment, changeAppointmentStatus } from '../../services/appointmentService';
@@ -9,14 +9,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 const PatientAppointment = () => {
     const nav = useNavigate();
-    const { id: patientId } = useParams();
+    const { id } = useParams();
     const [show, setShow] = useState(false);
     const [departments, setDepartments] = useState([]);
     const [services, setServices] = useState([]);
     const [staff, setStaff] = useState([]);
+    const [patient, setPatient] = useState({});
     const [patientAppointments, setPatientAppointments] = useState([]);
     const [appointment, setAppointment] = useState({
-        patient: patientId,
+        patient: id,
         department: '',
         service: '',
         staff: '',
@@ -35,17 +36,17 @@ const PatientAppointment = () => {
         };
 
         const fetchAppointments = async () => {
-            const data = await getAppointmentsByPatient(patientId);
+            const data = await getAppointmentsByPatient(id);
             if (data.error) {
                 toast.error(data.error);
             } else {
                 setPatientAppointments(data.appointments);
+                setPatient(data.appointments[0].patient)
             }
         };
-
         fetchDepartments();
         fetchAppointments();
-    }, [patientId]);
+    }, [id, patientAppointments]);
 
     const handleDepartmentChange = async (e) => {
         const departmentId = e.target.value;
@@ -102,22 +103,40 @@ const PatientAppointment = () => {
         } else {
             toast.success('Appointment created successfully');
             setPatientAppointments([...patientAppointments, data.appointment]);
-            setShow(false); 
+            setShow(false);
         }
     };
 
     return (
         <>
-            <div className='btn-row'>
-                <Button variant="primary" onClick={() => setShow(true)}>
-                    Add New Appointment
-                </Button>
-                <Button variant="primary" onClick={() => {
-                    nav('/admin/patients');
-                }}>
-                    Back
-                </Button>
-            </div>
+            <Row md={12}>
+                <Col md={4}>
+                    <h4>Patient Code:</h4>
+                    <p>{patient.code}</p>
+                </Col>
+                <Col md={4}>
+                    <h4>Patient Name:</h4>
+                    <p>{patient.name}</p>
+                </Col>
+                <Col md={4}>
+                    <h4>Phone:</h4>
+                    <p>{patient.phone}</p>
+                </Col>
+            </Row>
+            <Row md={12}>
+                <Col md={6}>
+                    <Button variant="primary" onClick={() => setShow(true)}>
+                        Add New Appointment
+                    </Button>
+                </Col>
+                <Col md={6}>
+                    <Button variant="primary" onClick={() => {
+                        nav('/admin/patients');
+                    }}>
+                        Back
+                    </Button>
+                </Col>
+            </Row>
 
             <Table striped bordered hover>
                 <thead>
@@ -132,17 +151,17 @@ const PatientAppointment = () => {
                 </thead>
                 <tbody>
                     {patientAppointments.map(appointment => (
-                            <tr key={appointment._id}>
-                                <td>{appointment.staff.department.name}</td>
-                                <td>{appointment.service.service}</td>
-                                <td>{appointment.staff.name}</td>
-                                <td>{new Date(appointment.date).toLocaleString()}</td>
-                                <td>{appointment.status}</td>
-                                <td>
-                                    <Button variant="danger" onClick={() => handleDeleteAppointment(appointment._id)}>Delete</Button>
-                                    <Button variant="success" onClick={() => handleStatusAppointment(appointment._id, appointment.status)}>Change Status</Button>
-                                </td>
-                            </tr>
+                        <tr key={appointment._id}>
+                            <td>{appointment.department?.name}</td>
+                            <td>{appointment.service?.service}</td>
+                            <td>{appointment.staff.user?.name}</td>
+                            <td>{new Date(appointment.date).toLocaleString()}</td>
+                            <td>{appointment.status}</td>
+                            <td>
+                                <Button variant="danger" onClick={() => handleDeleteAppointment(appointment._id)}>Delete</Button>
+                                <Button variant="success" onClick={() => handleStatusAppointment(appointment._id, appointment.status)}>Change Status</Button>
+                            </td>
+                        </tr>
                     ))
                     }
                 </tbody>
@@ -159,7 +178,7 @@ const PatientAppointment = () => {
                             <Form.Control as="select" name="department" onChange={handleDepartmentChange} value={appointment.department}>
                                 <option value="">Select Department</option>
                                 {departments.map(department => (
-                                    <option key={department._id} value={department._id}>{department.department}</option>
+                                    <option key={department._id} value={department._id}>{department.name}</option>
                                 ))}
                             </Form.Control>
                         </Form.Group>
@@ -177,7 +196,7 @@ const PatientAppointment = () => {
                             <Form.Control as="select" name="staff" onChange={handleChange} value={appointment.staff}>
                                 <option value="">Select Staff</option>
                                 {staff.map(staff => (
-                                    <option key={staff._id} value={staff._id}>{staff.name}</option>
+                                    <option key={staff._id} value={staff._id}>{staff.user?.name}</option>
                                 ))}
                             </Form.Control>
                         </Form.Group>

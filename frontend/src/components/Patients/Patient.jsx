@@ -5,6 +5,7 @@ import {
     deletePatient,
     getPatientByName,
     getPatientByCode,
+    getMaxCode
 } from '../../services/PatientService';
 import { useState, useEffect } from 'react';
 import { getCurrentUser } from '../../services/AuthService';
@@ -20,9 +21,10 @@ const Patient = ({ currentUser }) => {
     }
 
     const [patients, setPatients] = useState([]);
+    const [maxCode, setMaxCode] = useState(0);
     const emptyPatient = {
         name: '',
-        code: '',
+        code: 0,
         age: 0,
         address: '',
         phone: '',
@@ -43,6 +45,10 @@ const Patient = ({ currentUser }) => {
                 toast.error(response.error);
             } else {
                 setPatients(response.patients);
+                setMaxCode(() => {
+                    const max = Math.max(...response.patients.map((patient) => patient.code));
+                    return max + 1;
+                });
             }
         });
     }, []);
@@ -93,7 +99,7 @@ const Patient = ({ currentUser }) => {
                 toast.success(response.message);
             }
         } else {
-            const response = await createPatient({ ...patient, code: getNextCode() });
+            const response = await createPatient({ ...patient, code: maxCode });
             if (response.error) {
                 toast.error(response.error);
             } else {
@@ -139,11 +145,6 @@ const Patient = ({ currentUser }) => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setPatient({ ...patient, [name]: value, create_by: currentUser ? currentUser : getCurrentUser() });
-    };
-
-    const getNextCode = () => {
-        const maxCode = Math.max(...patients.map((p) => parseInt(p.code, 10)), 0);
-        return (maxCode + 1).toString();
     };
 
     return (
@@ -218,16 +219,18 @@ const Patient = ({ currentUser }) => {
                                             Actions
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu>
-                                            <Dropdown.Item as={Link} to={`/admin/appointments/patient/${p._id}`}>Add Appointment</Dropdown.Item>
+                                            <Dropdown.Item
+                                                as={Link}
+                                                to={`/admin/appointments/patient/${p._id}`}
+                                            >Add Appointment</Dropdown.Item>
                                             <Dropdown.Item onClick={() => {
                                                 setPatient(p);
                                                 setIsEdit(true);
                                                 setIsModalOpen(true);
-                                            }
-                                            }>Edit</Dropdown.Item>
+                                            }}>Edit</Dropdown.Item>
                                             <Dropdown.Item onClick={() => handleDelete(p._id)}>Delete</Dropdown.Item>
                                         </Dropdown.Menu>
-                                    </Dropdown>                                    
+                                    </Dropdown>
                                 </td>
                             </tr>
                         ))}
@@ -239,6 +242,10 @@ const Patient = ({ currentUser }) => {
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
+                        <FormGroup>
+                            <FormLabel>Patient Code</FormLabel>
+                            <FormControl type='number' name='code' value={isEdit ? patient.code : maxCode} onChange={handleInputChange} disabled />
+                        </FormGroup>
                         <FormGroup>
                             <FormLabel>Name</FormLabel>
                             <FormControl type='text' name='name' value={patient.name} onChange={handleInputChange} />
@@ -266,12 +273,8 @@ const Patient = ({ currentUser }) => {
                     <Button onClick={handleModalClose}>Close</Button>
                 </Modal.Footer>
             </Modal>
-        </div>
+        </div >
     );
 }
-
-Patient.propTypes = {
-    currentUser: PropTypes.object,
-};
 
 export default Patient;

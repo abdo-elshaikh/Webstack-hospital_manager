@@ -67,17 +67,20 @@ const deletePatient = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
-const getPatientByName = async (req, res) => {
-    const { name } = req.body;
+};
+
+const getPatientsByName = async (req, res) => {
+    const { name: patientName } = req.body;
+
     try {
-        const patients = await Patient.find({ name: {
-            $regex: name,
-        } });
-        if (patients) {
-            res.status(200).json({ patients, message: `Success get patients` });
+        const patients = await Patient.find({
+            name: { $regex: new RegExp(patientName, 'i') }
+        });
+
+        if (patients.length > 0) {
+            res.status(200).json({ patients, message: 'Successfully retrieved patients' });
         } else {
-            res.status(404).json({ message: 'Patient not found' });
+            res.status(404).json({ message: 'Patient(s) not found' });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -87,14 +90,24 @@ const getPatientByName = async (req, res) => {
 const getPatientByCode = async (req, res) => {
     const { code } = req.body;
     try {
-        const patients = await Patient.find({ code: code });
-        if (patients) {
-            res.status(200).json({ patients, message: `Success get patients` });
+        const patient = await Patient.findOne({ code });
+        if (patient) {
+            res.status(200).json({ patient, message: `Successfully retrieved patient` });
         } else {
             res.status(404).json({ message: 'Patient not found' });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+const getMaxPatientCode = async (req, res) => {
+    try {
+        const sortedPatients = await Patient.find({}).sort({ code: -1 }).limit(1);
+        const maxCode = sortedPatients.length > 0 ? sortedPatients[0].code : null;
+        res.status(200).json({ maxCode });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -104,6 +117,7 @@ module.exports = {
     createPatient,
     updatePatient,
     deletePatient,
-    getPatientByName,
-    getPatientByCode
+    getPatientsByName,
+    getPatientByCode,
+    getMaxPatientCode
 };

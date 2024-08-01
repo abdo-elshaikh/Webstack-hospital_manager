@@ -22,7 +22,7 @@ const initAdmin = async () => {
     } catch (error) {
         console.error(error);
     }
-};
+}
 
 const register = async (req, res) => {
     const { email, name, password, role } = req.body;
@@ -30,17 +30,15 @@ const register = async (req, res) => {
     try {
         const userExists = await User.findOne({ email });
         if (userExists) {
-            res.status(400).json({ message: 'User already exists' });
-        } else {
-            const user = await User.create({ email, name, password, isActive, role });
-            if (user) {
-                const token = generateToken(user._id);
-                const { password, ...userWithoutPassword } = user._doc;
-                res.status(201).json({ user: userWithoutPassword, token, message: 'User registered successfully' });
-            } else {
-                res.status(400).json({ message: 'Invalid user data' });
-            }
+            return res.status(400).json({ message: 'User already exists' });
         }
+
+        const user = new User({ email, name, password, isActive, role });
+        await user.save();
+
+        const token = generateToken(user._id);
+        const { password: userPassword, ...userWithoutPassword } = user._doc;
+        res.status(201).json({ user: userWithoutPassword, token, message: 'User registered successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -48,28 +46,37 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     const { email, password } = req.body;
+    // console.log("Login attempt:", req.body);
+
     try {
         const user = await User.findOne({ email });
-        if (user.googleId || user.facebookId) {
-            res.json({ message: user.googleId ? `You have registered with Google. Please login with Google` : `You have registered with Facebook. Please login with Facebook` });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
         }
-        if (user && (await user.matchPassword(password))) {
-            if (user.isActive) {
-                const token = generateToken(user._id);
-                const { password, ...userWithoutPassword } = user._doc;
-                res.status(200).json({ user: userWithoutPassword, token, message: 'Successfully logged in!' });
-            } else {
-                res.status(401).json({
-                    message: 'User is not active. Please contact the admin to activate your account'
-                });
+
+        if (user.googleId || user.facebookId) {
+            const loginMethod = user.googleId ? 'Google' : 'Facebook';
+            return res.status(401).json({ message: `You have registered with ${loginMethod}. Please login with ${loginMethod}.` });
+        }
+
+        if (await user.matchPassword(password)) {
+            if (!user.isActive) {
+                return res.status(401).json({ message: 'User is not active. Please contact the admin to activate your account.' });
             }
+
+            const token = generateToken(user._id);
+            const { password, ...userWithoutPassword } = user._doc;
+            return res.status(200).json({ user: userWithoutPassword, token, message: 'Successfully logged in!' });
         } else {
-            res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid email or password' });
         }
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        // console.error("Login error:", error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
@@ -78,7 +85,7 @@ const forgotPassword = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found' });
         }
 
         const token = generateToken({ id: user._id });
@@ -108,7 +115,7 @@ const resetPassword = async (req, res) => {
     const { token } = req.params;
 
     if (!token) {
-        res.status(400).json({ message: 'Invalid reset token' });
+        return res.status(400).json({ message: 'Invalid reset token' });
     }
 
     try {
@@ -116,7 +123,7 @@ const resetPassword = async (req, res) => {
         const user = await User.findById(decoded.id);
 
         if (!user) {
-            res.status(404).json({ message: 'No user found with this id' });
+            return res.status(404).json({ message: 'No user found with this id' });
         }
 
         user.password = password;
@@ -137,21 +144,20 @@ const logout = async (req, res) => {
     }
 };
 
-
 const protect = async (req, res, next) => {
-    // console.log(req.headers);
     let token;
+    // console.log("Header :", req.headers);
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
     if (!token) {
-        res.status(401).json({ message: 'Not authorized to access this route' });
+        return res.status(401).json({ message: 'Not authorized to access this route' });
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         if (!user) {
-            res.status(404).json({ message: 'No user found with this id' });
+            return res.status(404).json({ message: 'No user found with this id' });
         }
         req.user = user;
         next();
@@ -167,6 +173,5 @@ const admin = (req, res, next) => {
         res.status(401).json({ message: 'Not authorized as an admin' });
     }
 };
-
 
 module.exports = { register, login, protect, admin, forgotPassword, resetPassword, logout, initAdmin };
