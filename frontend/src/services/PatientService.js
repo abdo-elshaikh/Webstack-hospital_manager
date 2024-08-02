@@ -57,23 +57,43 @@ const deletePatient = async (id) => {
 
 const getPatientByName = async (patientName) => {
   try {
+    if (!patientName) {
+      throw new Error('Patient name is required');
+    }
+
     const url = `${BASE_URL}/name`;
-    const response = await axios.get(url, { body: { name: patientName }, headers: getAuthHeaders() });
+    const response = await axios.post(url, { name: patientName }, { headers: getAuthHeaders() });
+
+    if (response.status !== 200) {
+      throw new Error('Failed to fetch patient data');
+    }
+    console.log(response.data);
+
     return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.response?.statusText || 'An error occurred';
-    return { error: errorMessage}
+    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+    return { error: errorMessage };
   }
 };
 
 const getPatientByCode = async (code) => {
   try {
+    if (!code) {
+      throw new Error('Patient code is required');
+    }
+
     const url = `${BASE_URL}/code`;
-    const response = await axios.get(url, { body: { code }, headers: getAuthHeaders() });
+    const response = await axios.post(url, { code }, { headers: getAuthHeaders() });
+
+    if (response.status !== 200) {
+      throw new Error('Failed to fetch patient data');
+    }
+    console.log(response.data);
+
     return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
-    return { error: errorMessage}
+    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+    return { error: errorMessage };
   }
 };
 
@@ -84,7 +104,7 @@ const getMaxCode = async () => {
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message;
-    return { error: errorMessage}
+    return { error: errorMessage }
   }
 };
 

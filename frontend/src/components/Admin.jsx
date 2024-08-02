@@ -22,7 +22,7 @@ const Admin = () => {
         const handleResize = () => {
             setIsMobile(window.innerWidth <= 768);
             if (window.innerWidth > 768) {
-                setIsSliderOpen(true); // Keep sidebar open on desktop
+                setIsSliderOpen(true);
             }
         };
         window.addEventListener('resize', handleResize);

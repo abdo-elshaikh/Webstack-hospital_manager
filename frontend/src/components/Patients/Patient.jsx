@@ -40,41 +40,61 @@ const Patient = ({ currentUser }) => {
     const [searchResult, setSearchResult] = useState([]);
 
     useEffect(() => {
+        getMaxCode().then((response) => {
+            if (response.error) {
+                toast.error(response.error);
+            } else {
+                setMaxCode(response.maxCode);
+            }
+        });
+        
         getPatients().then((response) => {
             if (response.error) {
                 toast.error(response.error);
             } else {
                 setPatients(response.patients);
-                setMaxCode(() => {
-                    const max = Math.max(...response.patients.map((patient) => patient.code));
-                    return max + 1;
-                });
+                
             }
         });
     }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        if (searchType === 'name') {
+        if (!searchType || !search) {
+            toast.error('Please enter a search type and search term');
+            return;
+        }
+        if (searchType === 'name' && search !== '') {
             getPatientByName(search).then((response) => {
-                if (response.error) {
+                if (response && response.error) {
                     toast.error(response.error);
-                } else {
+                } else if (response && response.patients) {
                     setSearchResult(response.patients);
                     toast.success(response.message);
+                } else {
+                    toast.error('Something went wrong');
                 }
+            }).catch((error) => {
+                toast.error('Something went wrong', error);
+            });
+        } else if(searchType === 'code' && search !== '') {
+            getPatientByCode(search).then((response) => {
+                if (response && response.error) {
+                    toast.error(response.error);
+                } else if (response && response.patient) {
+                    setSearchResult(response.patient);
+                    toast.success(response.message);
+                } else {
+                    toast.error('Something went wrong');
+                }
+            }).catch((error) => {
+                toast.error('Something went wrong', error);
             });
         } else {
-            getPatientByCode(search).then((response) => {
-                if (response.error) {
-                    toast.error(response.error);
-                } else {
-                    setSearchResult(response.patients);
-                    toast.success(response.message);
-                }
-            });
+            setSearchResult([]);
+            toast.error('add search type');
         }
-    };
+    }
 
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
@@ -194,7 +214,11 @@ const Patient = ({ currentUser }) => {
                 <tbody>
                     {searchResult.length > 0
                         ? searchResult.map((p) => (
-                            <tr key={p._id}>
+                            <tr key={p._id} style={
+                                p._id === patient._id
+                                    ? { backgroundColor: '#f2f2f2' }
+                                    : {}
+                            }>
                                 <td>{p.code}</td>
                                 <td>{p.name}</td>
                                 <td>{p.age}</td>
@@ -278,3 +302,4 @@ const Patient = ({ currentUser }) => {
 }
 
 export default Patient;
+

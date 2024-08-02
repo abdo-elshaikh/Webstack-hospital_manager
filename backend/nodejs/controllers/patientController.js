@@ -70,11 +70,12 @@ const deletePatient = async (req, res) => {
 };
 
 const getPatientsByName = async (req, res) => {
-    const { name: patientName } = req.body;
+    console.log(req.body);
+    const { name } = req.body;
 
     try {
         const patients = await Patient.find({
-            name: { $regex: new RegExp(patientName, 'i') }
+            name: { $regex: new RegExp(name, 'i') }
         });
 
         if (patients.length > 0) {
@@ -88,6 +89,7 @@ const getPatientsByName = async (req, res) => {
 };
 
 const getPatientByCode = async (req, res) => {
+    console.log(req.body);
     const { code } = req.body;
     try {
         const patient = await Patient.findOne({ code });
