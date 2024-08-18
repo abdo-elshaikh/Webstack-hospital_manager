@@ -69,7 +69,7 @@ const getStaffByPosition = async (positionId) => {
 const getStaffByDepartment = async (id) => {
     try {
         const response = await axios.get(`${staffUrl}/department/${id}`, { headers: getHeaders() });
-        console.log(response.data);
+        // console.log(response.data);
         return response.data;
     } catch (error) {
         return { error: error.response?.data.message || error.message };

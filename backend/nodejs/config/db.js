@@ -6,16 +6,13 @@ dotenv.config();
 
 const connectDB = async () => {
     try {
-        const mongoUri = process.env.MONGO_URI;
-        if (!mongoUri) {
-            throw new Error('MONGO_URI is not defined');
-        }
-        
-        const conn = await mongoose.connect(mongoUri);
+        const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log(`MongoDB connected: ${conn.connection.host}`);
         initAdmin();
+
+        // return conn;
     } catch (error) {
-        console.error(`Error: ${error.message}`);
+        console.error(error);
         process.exit(1);
     }
 }

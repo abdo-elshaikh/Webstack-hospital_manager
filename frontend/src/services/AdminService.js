@@ -16,15 +16,10 @@ const getHeaders = () => {
 const getUsers = async () => {
     try {
         const response = await axios.get(`${API_URL}/users`, { headers: getHeaders() });
+        // console.log(response.data);
         return response.data;
     } catch (error) {
-        if (error.response) {
-            return { error: error.response.data.message };
-        } else if (error.request) {
-            return { error: "Network error: no response received" };
-        } else {
-            return { error: "Error in setting up the request" };
-        }
+        return { error: error.response?.data?.message || error.message };
     }
 };
 
@@ -33,43 +28,26 @@ const getUserById = async (id) => {
         const response = await axios.get(`${API_URL}/user/${id}`, { headers: getHeaders() });
         return response.data.user;
     } catch (error) {
-        if (error.response) {
-            return { error: error.response.data.message };
-        } else if (error.request) {
-            return { error: "Network error: no response received" };
-        } else {
-            return { error: "Error in setting up the request" };
-        }
+        return { error: error.response?.data?.message || error.message };
     }
 };
 
-const updateUser = async (id, role) => {
+
+const updateUserRole = async (id, role) => {
     try {
         const response = await axios.put(`${API_URL}/user/${id}`, { role }, { headers: getHeaders() });
         return response.data;
     } catch (error) {
-        if (error.response) {
-            return { error: error.response.data.message };
-        } else if (error.request) {
-            return { error: "Network error: no response received" };
-        } else {
-            return { error: "Error in setting up the request" };
-        }
+        return { error: error.response?.data?.message || error.message };
     }
 };
 
 const updateUserActivation = async (id) => {
     try {
-        const response = await axios.put(`${API_URL}/user/activation/${id}`, {}, { headers: getHeaders() });
+        const response = await axios.put(`${API_URL}/user/activation/${id}`);
         return response.data;
     } catch (error) {
-        if (error.response) {
-            return { error: error.response.data.message };
-        } else if (error.request) {
-            return { error: "Network error: no response received" };
-        } else {
-            return { error: "Error in setting up the request" };
-        }
+        return { error: error.response?.data?.message || error.message };
     }
 };
 
@@ -78,14 +56,10 @@ const deleteUser = async (id) => {
         const response = await axios.delete(`${API_URL}/user/${id}`, { headers: getHeaders() });
         return response.data;
     } catch (error) {
-        if (error.response) {
-            return { error: error.response.data.message };
-        } else if (error.request) {
-            return { error: "Network error: no response received" };
-        } else {
-            return { error: "Error in setting up the request" };
-        }
+        return { error: error.response?.data?.message || error.message };
     }
 };
 
-export { getUsers, deleteUser, getUserById, updateUser, updateUserActivation };
+
+
+export { getUsers, deleteUser, getUserById, updateUserActivation, updateUserRole };

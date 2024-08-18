@@ -58,12 +58,12 @@ const AppointmentListPage = () => {
                 <tbody>
                     {appointments.map(appointment => (
                         <tr key={appointment._id}>
-                            <td>{appointment.patient.code}</td>
-                            <td>{appointment.patient.name}</td>
-                            <td>{appointment.service.service}</td>
-                            <td>{appointment.staffName}</td>
-                            <td>{new Date(appointment.date).toLocaleString()}</td>
-                            <td>{appointment.status}</td>
+                            <td>{appointment.patient?.code}</td>
+                            <td>{appointment.patient?.name}</td>
+                            <td>{appointment.service?.service}</td>
+                            <td>{appointment?.staffName}</td>
+                            <td>{new Date(appointment?.date).toLocaleString()}</td>
+                            <td>{appointment?.status}</td>
                             <td>
                                 <Link to={`/admin/appointments/${appointment._id}`}>View</Link>
                                 <Link to={`/admin/appointments/edit/${appointment._id}`} className="btn btn-secondary">Edit</Link>

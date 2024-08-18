@@ -15,6 +15,7 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const authRoutes = require('./routes/authRoutes');
 const passport = require('passport');
+const path = require('path');
 require('./config/passport');
 
 const app = express();
@@ -31,6 +32,7 @@ connectDB();
 
 // middleware
 app.use(cookieParse());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors(crosOptions));

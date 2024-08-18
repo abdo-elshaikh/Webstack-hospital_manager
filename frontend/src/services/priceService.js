@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const serviceUrl = 'http://localhost:5000/api/services';
 
+// router.route('/service-type/:type').get(getServicesByType);
+// router.route('/sertvice-price/:id').get(getServicePriceByType);
+
 const getHeaders = () => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -10,6 +13,24 @@ const getHeaders = () => {
         };
     }
     return {};
+}
+
+const getServicesByType = async (type) => {
+    try {
+        const response = await axios.get(`${serviceUrl}/service-type/${type}`, { headers: getHeaders() });
+        return response.data;
+    } catch (error) {
+        return { error: error.response.data.message || error.message };
+    }
+}
+
+const getServicePriceByType = async (id, type) => {
+    try {
+        const response = await axios.get(`${serviceUrl}/service-price/${id}/${type}`, { headers: getHeaders() });
+        return response.data;
+    } catch (error) {
+        return { error: error.response.data.message || error.message };
+    }
 }
 
 const getservices = async () => {
@@ -67,4 +88,4 @@ const getServicesByDepartment = async (id) => {
     }
 
 }
-export { getservices, getServiceById, createService, updateService, deleteService, getServicesByDepartment };
+export { getservices, getServiceById, createService, updateService, deleteService, getServicesByDepartment, getServicesByType, getServicePriceByType };

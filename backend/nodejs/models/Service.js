@@ -1,5 +1,23 @@
 const mongoose = require('mongoose');
 
+const priceSchema = new mongoose.Schema({
+    type: {
+        type: String,
+        required: true,
+        enum: ['cash', 'insurance', 'contract']
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+}, {
+    timestamps: true
+});
+
 const serviceSchema = new mongoose.Schema({
     department: {
         type: mongoose.Schema.Types.ObjectId,
@@ -10,10 +28,7 @@ const serviceSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    price: {
-        type: Number,
-        required: true,
-    }
+    prices: [priceSchema]
 }, {
     timestamps: true,
 });

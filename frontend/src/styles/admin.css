@@ -1,35 +1,91 @@
-.admin-container {
+html, body, .admin-container, .row, .col-md-2, .col-md-10 {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#admin-sidebar {
+    background-color: #343a40;
+    padding: 0;
+    overflow-y: auto;
+    position: fixed;
+    top: 56px; /* Height of the fixed header */
+    bottom: 0;
+    left: 0;
+    transition: width 0.3s ease;
+}
+
+#admin-sidebar.sidebar-closed {
+    width: 70px; /* Adjust this width as needed */
+}
+
+#admin-sidebar.sidebar-open {
+    width: 16.6667%; /* Adjust this width as needed */
+}
+
+#admin-sidebar .nav-link {
+    color: white;
     display: flex;
-    flex-direction: column;
-    flex-flow: column;
     align-items: center;
     justify-content: flex-start;
-    /* margin: auto 20px; */
-    min-height: 100vh;
-    padding: 10px;
-    padding-top: 0;
+    padding: 1rem;
+    width: 100%;
+}
+
+#admin-sidebar .nav-link.active {
+    background-color: #4b5057;
+    color: #9c27b0;
+}
+
+#admin-sidebar .nav-link:hover {
+    background-color: #4b5057;
+    color: #9c27b0;
+}
+
+#admin-sidebar .nav-link svg {
+    margin-right: 10px;
+}
+
+#admin-sidebar .nav-link span {
+    display: none;
+}
+
+#admin-sidebar.sidebar-open .nav-link span {
+    display: inline;
+}
+
+#admin-sidebar.sidebar-closed .nav-link .fa-icon {
+    font-size: 1.5rem;
+    margin: 0;
 }
 
 .admin-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-    width: 100%;
-    padding: 5px 30px;
-    background-color: rgb(33, 37, 41);
-    border-radius: 10px;
+    transition: all 0.3s ease;
 }
 
-.main-content {
+.admin-header.collapsed .nav-text {
+    display: none;
+}
+
+.admin-header .navbar-nav .nav-link {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
-    flex-grow: unset;
-    /* margin: 10px 0; */
-    padding: 10px;
-    width: 100%;
-    background-color: #fff;
-    border-radius: 10px;
+    padding: 0.5rem 1rem;
+}
+
+.admin-header .navbar-nav .nav-link .nav-text {
+    margin-left: 0.5rem;
+}
+
+.admin-header .navbar-nav .nav-link .fa-tachometer-alt,
+.admin-header .navbar-nav .nav-link .fa-user {
+    font-size: 1.2rem;
+}
+
+.admin-header .navbar-nav .nav-link:hover {
+    background-color: #343a40;
+}
+
+.admin-header .navbar-nav .nav-link.active {
+    background-color: #495057;
 }

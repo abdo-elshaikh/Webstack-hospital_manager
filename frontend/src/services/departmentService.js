@@ -31,6 +31,7 @@ const getDepartmentById = async (id) => {
 };
 
 const createDepartment = async (department) => {
+    console.log('createDepartment', department);
     try {
         const response = await axios.post(departmentsUrl, department, { headers: getHeaders() });
         return response.data;

@@ -9,7 +9,7 @@ router.route('/')
 router.route('/:id')
     .get(protect, getAppointmentById)
     .put(protect, updateAppointment)
-    .delete(protect, admin, deleteAppointment);
+    .delete(protect, deleteAppointment);
 router.route('/status/:id')
     .put(protect, changeStatus);
 router.route('/delete/all').delete(protect, admin, deleteAll);

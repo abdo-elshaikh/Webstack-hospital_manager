@@ -20,17 +20,19 @@ passport.deserializeUser((id, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:5000/auth/google/callback'
+    callbackURL: process.env.SERVER_URI + '/auth/google/callback'
 },
     async (accessToken, refreshToken, profile, done) => {
         try {
             let user = await User.findOne({ googleId: profile.id });
+            console.log('Google user: ' + user);
             if (!user) {
                 const newUser = {
                     googleId: profile.id,
                     name: profile.displayName,
                     email: profile.emails[0].value,
                     role: 'user',
+                    image: profile.photos[0].value,
                     isActive: true
                 };
                 user = await User.create(newUser);
@@ -49,18 +51,20 @@ passport.use(new GoogleStrategy({
 passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: 'http://localhost:5000/auth/facebook/callback',
+    callbackURL: process.env.SERVER_URI + '/auth/facebook/callback',
     profileFields: ['id', 'displayName', 'email']
 },
     async (accessToken, refreshToken, profile, done) => {
         try {
             let user = await User.findOne({ facebookId: profile.id });
+            console.log('Facebook user: ' + user);
             if (!user) {
                 const newUser = {
                     facebookId: profile.id,
                     name: profile.displayName,
                     email: profile.emails[0].value,
                     role: 'user',
+                    image: profile.photos[0].value,
                     isActive: true
                 };
                 user = await User.create(newUser);

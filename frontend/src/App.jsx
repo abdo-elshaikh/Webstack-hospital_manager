@@ -1,84 +1,92 @@
-import { useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+// App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+
+import Home from './pages/Home';
+import Admin from './pages/Admin';
+import Staff from './pages/Staff';
 import Profile from './components/Profile';
-import Home from './components/Home/Home';
-import Login from './components/Login';
-import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword";
-import Register from './components/Register';
+import Login from './components/Auth/Login';
+import ForgotPassword from './components/Auth/ForgotPassword';
+import ResetPassword from './components/Auth/ResetPassword';
+import Register from './components/Auth/Register';
 import NotFound from './components/NotFound';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Admin from './components/Admin';
-import { Container } from 'react-bootstrap';
-import { getCurrentUser, logout } from './services/AuthService';
+import PrivateRoute from './components/PrivateRoute';
+import Active from './components/Auth/Active';
+import AuthPage from './components/Auth/Auth';
+import Unauthorized from './components/Unauthorized';
+import { ROLES } from './constants/roles';
+import { AuthProvider } from './contexts/AuthContext';
 import './app.css';
 
 const App = () => {
     return (
         <Router>
-            <MainApp />
+            <AuthProvider>
+                <MainApp />
+            </AuthProvider>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
         </Router>
     );
 };
 
 const MainApp = () => {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [isLogedIn, setIsLogedIn] = useState(false);
-
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (!user) {
-            getCurrentUser().then((data) => {
-                if (data.error) {
-                    toast.error(data.error);
-                } else {
-                    setCurrentUser(data.user);
-                    setIsLogedIn(true);
-                }
-            });
-        } else {
-            setCurrentUser(user);
-            setIsLogedIn(true);
-        }
-    }, []);
-
-    const handleLogIn = (user) => {
-        setCurrentUser(user);
-        setIsLogedIn(true);
-    };
-
-    const handleLogout = async () => {
-        logout().then((data) => {
-            if (data.error) {
-                toast.error(data.error);
-            }
-            setCurrentUser(null);
-            setIsLogedIn(false);
-            toast.success(data.message);
-        })
-    };
-
-    const location = useLocation();
-    const hideHeader = location.pathname.includes('/admin');
     return (
-        <Container>
-            {!hideHeader && <Header currentUser={currentUser} handleLogout={handleLogout} isLogedIn={isLogedIn} />}
-            <Routes>
-                <Route path="/" element={<Home user={currentUser} isLogged={isLogedIn} />} />
-                <Route path="/login" element={<Login handleLogIn={handleLogIn} />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgotPassword" element={<ForgotPassword />} />
-                <Route path="/resetPassword/:token" element={<ResetPassword />} />
-                <Route path="/profile" element={<Profile currentUser={currentUser} />} />
-                <Route path="/admin/*" element={<Admin currentUser={currentUser} />} />
-                <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Footer />
-            <ToastContainer position={'top-right'} />
-        </Container>
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/*" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/activate/:token" element={<Active />} />
+            <Route path="/auth/*" element={<AuthPage />} />
+
+            {/* Protected Routes */}
+            <Route
+                path="/profile"
+                element={
+                    <PrivateRoute allowedRoles={['user', 'admin', 'staff']}>
+                        <Profile />
+                    </PrivateRoute>
+                }
+            />
+
+            {/* Admin Routes */}
+            <Route
+                path="/admin/*"
+                element={
+                    <PrivateRoute allowedRoles={['admin']}>
+                        <Admin />
+                    </PrivateRoute>
+                }
+            />
+
+            {/* Staff Routes */}
+            <Route
+                path="/staff/*"
+                element={
+                    <PrivateRoute allowedRoles={['staff', 'admin']}>
+                        <Staff />
+                    </PrivateRoute>
+                }
+            />
+
+            {/* Error and Unauthorized Routes */}
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="*" element={<NotFound />} />
+        </Routes>
     );
-}
+};
 
 export default App;

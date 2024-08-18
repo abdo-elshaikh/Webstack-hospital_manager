@@ -4,7 +4,7 @@ const { getAllUsers, updateUserRole, deleteUser, getUserById, updateUserActivati
 const { protect, admin } = require('../middleware/auth');
 
 router.route('/users').get(protect, admin, getAllUsers);
-router.route('/user/:id').get(protect, admin, getUserById).put(protect, admin, updateUserRole).delete(protect, admin, deleteUser);
-router.route('/user/activation/:id').put(protect, admin, updateUserActivation);
+router.route('/user/:id').get(protect, getUserById).put(protect, admin, updateUserRole).delete(protect, admin, deleteUser);
+router.route('/user/activation/:id').put(updateUserActivation);
 
 module.exports = router;

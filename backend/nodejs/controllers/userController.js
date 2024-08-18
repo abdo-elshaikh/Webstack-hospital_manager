@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
+const fs = require('fs');
 const User = require('../models/User');
 
 
 const getUserById = async (req, res) => {
-    const { id } = req.params || req.body;
+    const { id } = req.params;
     try {
         const user = await User.findById(id).select('-password');
         if (user) {
@@ -16,28 +17,32 @@ const getUserById = async (req, res) => {
     }
 };
 
-const getCurrentUser = (req, res) => {
-    const user = req.user;
-    if (user) {
-        res.status(200).json({ user });
-    } else {
-        res.status(404).json({ message: 'User not found' });
-    }
+const getCurrentUser = async (req, res) => {
+    const { id } = req.params;
+    const currentUser = await User.findById(id).select('-password');
+    res.status(200).json({ user: currentUser });
 }
 
 const updateUser = async (req, res) => {
-    const { id } = req.body;
+    const formData = req.body;
+    const { id } = req.params;
     try {
-        const user = await User.findById(id);
-        if (user) {
-            user.name = req.body.name || user.name;
-            user.email = req.body.email || user.email;
-            user.role = req.body.role || user.role;
-            if (req.body.password) {
-                user.password = await bcrypt.hash(req.body.password, 10);
+        const currentUser = await User.findById(id);
+        if (currentUser) {
+            currentUser.name = formData.name;
+            currentUser.email = formData.email;
+            currentUser.role = formData.role;
+
+            if (req.file) {
+                // Remove old image if it exists
+                // if (currentUser.image) {
+                //     fs.unlinkSync(`./uploads/${currentUser.image}`);
+                // }
+                // console.log(filePath);
+                currentUser.image = req.file.filename;
             }
-            const updatedUser = await user.save();
-            res.status(200).json({ user: updatedUser });
+            const updatedUser = await currentUser.save();
+            res.status(200).json({ user: updatedUser, message: 'User updated successfully' });
         } else {
             res.status(404).json({ message: 'User not found' });
         }
@@ -80,10 +85,12 @@ const updateUserActivation = async (req, res) => {
 }
 
 const deleteUser = async (req, res) => {
+    const { id } = req.params;
+
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        const user = await User.findByIdAndDelete(id);
         if (user) {
-            res.status(200).json({ message: 'User deleted' });
+            res.status(200).json({ message: 'User deleted successfully' });
         } else {
             res.status(404).json({ message: 'User not found' });
         }

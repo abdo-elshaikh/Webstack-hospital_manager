@@ -7,19 +7,42 @@ import {
     getPatientByCode,
     getMaxCode
 } from '../../services/PatientService';
+import PatientAppointment from '../Appointments/PatientAppointment';
 import { useState, useEffect } from 'react';
+import {useNavigate} from 'react-router-dom';
 import { getCurrentUser } from '../../services/AuthService';
 import { toast } from 'react-toastify';
-import { Modal, Button, Table, Row, Col, Form, FormControl, FormGroup, FormLabel, FormSelect, Dropdown } from 'react-bootstrap';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import {
+    Modal,
+    Box,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    IconButton,
+    TablePagination,
+    TableSortLabel,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    TextField,
+    Typography,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Checkbox
+} from '@mui/material';
+import { Edit, Delete, Search, Add, CalendarToday } from '@mui/icons-material';
 import '../../styles/patient.css';
 
-const Patient = ({ currentUser }) => {
-    if (!currentUser) {
-        currentUser = JSON.parse(localStorage.getItem('user'));
-    }
-
+const Patient = ({ currentUser, open }) => {
+    const navigate = useNavigate();
     const [patients, setPatients] = useState([]);
     const [maxCode, setMaxCode] = useState(0);
     const emptyPatient = {
@@ -38,63 +61,82 @@ const Patient = ({ currentUser }) => {
     const [search, setSearch] = useState('');
     const [searchType, setSearchType] = useState('name');
     const [searchResult, setSearchResult] = useState([]);
+    const [sortDirection, setSortDirection] = useState('asc');
+    const [orderBy, setOrderBy] = useState('code');
+    const [selected, setSelected] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
-        getMaxCode().then((response) => {
-            if (response.error) {
-                toast.error(response.error);
-            } else {
-                setMaxCode(response.maxCode);
-            }
-        });
-        
-        getPatients().then((response) => {
-            if (response.error) {
-                toast.error(response.error);
-            } else {
-                setPatients(response.patients);
-                
-            }
-        });
+        fetchAllPatients();
     }, []);
 
-    const handleSearch = (e) => {
+    useEffect(() => {
+        getMaxPatientCode();
+    }, [patients]);
+
+    const getMaxPatientCode = () => {
+        // getMaxCode().then(response => {
+        //     if (response.error) {
+        //         toast.error(response.error);
+        //         return;
+        //     }
+        //     setMaxCode(response.maxCode + 1);
+        // });
+        const maxCode = patients.map(patient => patient.code).reduce((acc, curr) => Math.max(acc, curr), 0);
+        setMaxCode(maxCode + 1);
+    };
+
+    const fetchAllPatients = () => {
+        setPatients([]);
+        getPatients()
+            .then(response => {
+                if (!response || !Array.isArray(response.patients)) {
+                    toast.error('Failed to fetch patients');
+                    return;
+                }
+                setPatients(response.patients);
+            })
+            .catch(error => {
+                toast.error('Failed to fetch patients', error);
+            });
+        setSearchResult([]);
+    };
+
+    const handleSearch = async (e) => {
         e.preventDefault();
+
         if (!searchType || !search) {
             toast.error('Please enter a search type and search term');
             return;
         }
-        if (searchType === 'name' && search !== '') {
-            getPatientByName(search).then((response) => {
-                if (response && response.error) {
-                    toast.error(response.error);
-                } else if (response && response.patients) {
-                    setSearchResult(response.patients);
-                    toast.success(response.message);
-                } else {
-                    toast.error('Something went wrong');
-                }
-            }).catch((error) => {
-                toast.error('Something went wrong', error);
-            });
-        } else if(searchType === 'code' && search !== '') {
-            getPatientByCode(search).then((response) => {
-                if (response && response.error) {
-                    toast.error(response.error);
-                } else if (response && response.patient) {
-                    setSearchResult(response.patient);
-                    toast.success(response.message);
-                } else {
-                    toast.error('Something went wrong');
-                }
-            }).catch((error) => {
-                toast.error('Something went wrong', error);
-            });
-        } else {
-            setSearchResult([]);
-            toast.error('add search type');
+
+        let searchResponse;
+        try {
+            if (searchType === 'name') {
+                searchResponse = await getPatientByName(search);
+            } else if (searchType === 'code') {
+                searchResponse = await getPatientByCode(search);
+            } else {
+                setSearchResult([]);
+                toast.error('Please enter a valid search type');
+                return;
+            }
+        } catch (error) {
+            toast.error('Something went wrong');
+            return;
         }
-    }
+
+        if (searchResponse.error) {
+            toast.error(searchResponse.error);
+            return;
+        }
+
+        const { patients, patient } = searchResponse;
+        const searchResult = searchType === 'name' ? patients : [patient];
+        setSearchResult(searchResult);
+        toast.success(searchResponse.message);
+    };
 
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
@@ -109,6 +151,7 @@ const Patient = ({ currentUser }) => {
         if (!validPhoneNumber(patient.phone)) {
             return;
         }
+        console.log(patient);
         if (isEdit) {
             const response = await updatePatient(patient._id, patient);
             if (response.error) {
@@ -143,6 +186,14 @@ const Patient = ({ currentUser }) => {
         });
     };
 
+    const handleDeleteSelected = (patientsSelected) => {
+        patientsSelected.forEach((patientId) => {
+            handleDelete(patientId);
+            setPatients(patients.filter((p) => p._id !== patientId));
+        });
+        setSelected([]);
+    }
+
     const handleModalClose = () => {
         setPatient(emptyPatient);
         setIsEdit(false);
@@ -167,139 +218,290 @@ const Patient = ({ currentUser }) => {
         setPatient({ ...patient, [name]: value, create_by: currentUser ? currentUser : getCurrentUser() });
     };
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const handleSort = (property) => {
+        const isAscending = orderBy === property && sortDirection === 'asc';
+        setSortDirection(isAscending ? 'desc' : 'asc');
+        setOrderBy(property);
+    };
+
+    const handleSelectAllClick = (event) => {
+        if (event.target.checked) {
+            setSelected(patients.map((p) => p._id));
+        } else {
+            setSelected([]);
+        }
+    };
+
+    const handleSelectClick = (event, id) => {
+        const selectedIndex = selected.indexOf(id);
+        let newSelected = [];
+
+        if (selectedIndex === -1) {
+            newSelected = newSelected.concat(selected, id);
+        } else if (selectedIndex === 0) {
+            newSelected = newSelected.concat(selected.slice(1));
+        } else if (selectedIndex === selected.length - 1) {
+            newSelected = newSelected.concat(selected.slice(0, -1));
+        } else if (selectedIndex > 0) {
+            newSelected = newSelected.concat(
+                selected.slice(0, selectedIndex),
+                selected.slice(selectedIndex + 1)
+            );
+        }
+
+        setSelected(newSelected);
+    };
+
+    const isSelected = (id) => selected.indexOf(id) !== -1;
+
+    const sortPatients = (data) => {
+        return data.sort((a, b) => {
+            if (a[orderBy] < b[orderBy]) {
+                return sortDirection === 'asc' ? -1 : 1;
+            }
+            if (a[orderBy] > b[orderBy]) {
+                return sortDirection === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    };
+
+    const linkToPatientAppointments = (patient) => {
+        // navigate to patient appointments and pass patient data
+        navigate(`/admin/patient-appointment`, { state: { patient } });
+    };
+
+    const sortedPatients = sortPatients(searchResult.length > 0 ? searchResult : patients);
+
+    const emptyRows = rowsPerPage - Math.min(rowsPerPage, sortedPatients.length - page * rowsPerPage);
+
     return (
-        <div className='patient'>
-            <div className='patient-header'>
-                <h1>Patients</h1>
-                <Button onClick={() => setIsModalOpen(true)}>Add Patient</Button>
-            </div>
-            <Row className='search'>
-                <Col md={12}>
-                    <Form>
-                        <Row>
-                            <Col md={6}>
-                                <FormGroup>
-                                    <FormLabel>Search</FormLabel>
-                                    <FormControl type='text' name='search' value={search} onChange={handleSearchChange} />
-                                </FormGroup>
-                            </Col>
-                            <Col md={4}>
-                                <FormGroup>
-                                    <FormLabel>Search By</FormLabel>
-                                    <FormSelect name='searchType' value={searchType} onChange={handleSearchTypeChange}>
-                                        <option value='name'>Name</option>
-                                        <option value='code'>Code</option>
-                                    </FormSelect>
-                                </FormGroup>
-                            </Col>
-                            <Col md={2}>
-                                <Button onClick={handleSearch}>Search</Button>
-                            </Col>
-                        </Row>
-                    </Form>
-                </Col>
-            </Row>
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Age</th>
-                        <th>Address</th>
-                        <th>Phone</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {searchResult.length > 0
-                        ? searchResult.map((p) => (
-                            <tr key={p._id} style={
-                                p._id === patient._id
-                                    ? { backgroundColor: '#f2f2f2' }
-                                    : {}
-                            }>
-                                <td>{p.code}</td>
-                                <td>{p.name}</td>
-                                <td>{p.age}</td>
-                                <td>{p.address}</td>
-                                <td>{p.phone}</td>
-                                <td>{p.description}</td>
-                                <td>
-                                </td>
-                            </tr>
-                        ))
-                        : patients.map((p) => (
-                            <tr key={p._id}>
-                                <td>{p.code}</td>
-                                <td>{p.name}</td>
-                                <td>{p.age}</td>
-                                <td>{p.address}</td>
-                                <td>{p.phone}</td>
-                                <td>{p.description}</td>
-                                <td>
-                                    <Dropdown>
-                                        <Dropdown.Toggle variant='success' id='dropdown-basic'>
-                                            Actions
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item
-                                                as={Link}
-                                                to={`/admin/appointments/patient/${p._id}`}
-                                            >Add Appointment</Dropdown.Item>
-                                            <Dropdown.Item onClick={() => {
-                                                setPatient(p);
-                                                setIsEdit(true);
-                                                setIsModalOpen(true);
-                                            }}>Edit</Dropdown.Item>
-                                            <Dropdown.Item onClick={() => handleDelete(p._id)}>Delete</Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                </td>
-                            </tr>
-                        ))}
-                </tbody>
-            </Table>
-            <Modal show={isModalOpen} onHide={handleModalClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{isEdit ? 'Edit Patient' : 'Add Patient'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <FormGroup>
-                            <FormLabel>Patient Code</FormLabel>
-                            <FormControl type='number' name='code' value={isEdit ? patient.code : maxCode} onChange={handleInputChange} disabled />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl type='text' name='name' value={patient.name} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Age</FormLabel>
-                            <FormControl type='number' name='age' value={patient.age} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl type='text' name='address' value={patient.address} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Phone</FormLabel>
-                            <FormControl type='text' name='phone' value={patient.phone} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl type='text' name='description' value={patient.description} onChange={handleInputChange} />
-                        </FormGroup>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button onClick={handleCreateOrEdit}>{isEdit ? 'Edit' : 'Add'}</Button>
-                    <Button onClick={handleModalClose}>Close</Button>
-                </Modal.Footer>
-            </Modal>
-        </div >
+        <Box component={Paper} p={2} sx={{ width: '100%', bgcolor: 'background.paper', }} >
+            <Box display='flex' justifyContent='space-between' alignItems='center' mb={2} sx={{ width: '100%' }}>
+                <Button variant='contained' startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
+                    Add Patient
+                </Button>
+                <Button
+                    variant='contained'
+                    color='error'
+                    startIcon={<Delete />}
+                    onClick={() => handleDeleteSelected(selected)}
+                    disabled={selected.length === 0}
+                >
+                    Delete Selected
+                </Button>
+            </Box>
+            <Box  component={Paper} p={2} mb={2} bgcolor={'#f8f9fa'}>
+                <form onSubmit={handleSearch}>
+                    <Box alignContent={'center'} display='flex' justifyContent='space-between' alignItems='center'>
+                        <TextField
+                            label='Search'
+                            variant='outlined'
+                            value={search}
+                            onChange={handleSearchChange}
+                            style={{ flex: 2, marginRight: '1rem' }}
+                        />
+                        <FormControl style={{ flex: 1, marginRight: '1rem' }}>
+                            <InputLabel>Search By</InputLabel>
+                            <Select
+                                value={searchType}
+                                onChange={handleSearchTypeChange}
+                                label='Search By'
+                            >
+                                <MenuItem value='name'>Name</MenuItem>
+                                <MenuItem value='code'>Code</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <Button variant='contained' color='primary' type='submit' startIcon={<Search />}>
+                            Search
+                        </Button>
+                    </Box>
+                </form>
+            </Box>
+            <TableContainer  >
+                <Table aria-label="simple table"  size='small' >
+                    <TableHead>
+                        <TableRow>
+                            <TableCell padding='checkbox'>
+                                <Checkbox
+                                    indeterminate={selected.length > 0 && selected.length < patients.length}
+                                    checked={patients.length > 0 && selected.length === patients.length}
+                                    onChange={handleSelectAllClick}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'code'}
+                                    direction={orderBy === 'code' ? sortDirection : 'asc'}
+                                    onClick={() => handleSort('code')}
+                                >
+                                    Code
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>
+                                <TableSortLabel
+                                    active={orderBy === 'name'}
+                                    direction={orderBy === 'name' ? sortDirection : 'asc'}
+                                    onClick={() => handleSort('name')}
+                                >
+                                    Name
+                                </TableSortLabel>
+                            </TableCell>
+                            <TableCell>Age</TableCell>
+                            <TableCell>Address</TableCell>
+                            <TableCell>Phone</TableCell>
+                            <TableCell>Gender</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {sortedPatients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((patient) => {
+                            const isItemSelected = isSelected(patient._id);
+                            return (
+                                <TableRow
+                                    hover
+                                    key={patient._id}
+                                    selected={isItemSelected}
+                                >
+                                    <TableCell padding='checkbox'>
+                                        <Checkbox
+                                            checked={isItemSelected}
+                                            onChange={(event) => handleSelectClick(event, patient._id)}
+                                        />
+                                    </TableCell>
+                                    <TableCell>{patient.code}</TableCell>
+                                    <TableCell>{patient.name}</TableCell>
+                                    <TableCell>{patient.age}</TableCell>
+                                    <TableCell>{patient.address}</TableCell>
+                                    <TableCell>{patient.phone}</TableCell>
+                                    <TableCell>{patient.gender}</TableCell>
+                                    <TableCell>{patient.description}</TableCell>
+                                    <TableCell align='right' sx={{ display: 'flex', gap: 1 }}>
+                                        <IconButton onClick={() => {
+                                            setPatient(patient);
+                                            setIsEdit(true);
+                                            setIsModalOpen(true);
+                                        }}>
+                                            <Edit />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleDelete(patient._id)}>
+                                            <Delete />
+                                        </IconButton>
+                                        <IconButton onClick={() => linkToPatientAppointments(patient)}>
+                                            <CalendarToday />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                        {/* {emptyRows > 0 && (
+                            <TableRow style={{ height: 53 * emptyRows }}>
+                                <TableCell colSpan={7} />
+                            </TableRow>
+                        )} */}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component='div'
+                count={patients.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+            <Dialog open={isModalOpen} onClose={handleModalClose} fullWidth maxWidth='sm'>
+                <DialogTitle>{isEdit ? 'Edit Patient' : 'Add Patient'}</DialogTitle>
+                <DialogContent>
+                    <form>
+                        <TextField
+                            fullWidth
+                            name='name'
+                            label='Name'
+                            value={patient.name}
+                            onChange={handleInputChange}
+                            margin='dense'
+                        />
+                        <TextField
+                            fullWidth
+                            name='code'
+                            label='Code'
+                            value={patient.code || maxCode }
+                            onChange={handleInputChange}
+                            margin='dense'
+                            disabled
+                        />
+                        <TextField
+                            fullWidth
+                            name='age'
+                            label='Age'
+                            value={patient.age}
+                            onChange={handleInputChange}
+                            margin='dense'
+                        />
+                        <FormControl style={{ width: '100%' }} >
+                            <InputLabel>Gender</InputLabel>
+                            <Select
+                                name='gender'
+                                value={patient.gender}
+                                onChange={handleInputChange}
+                                label='Gender'
+                            >
+                                <MenuItem value='male'>Male</MenuItem>
+                                <MenuItem value='female'>Female</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            fullWidth
+                            name='address'
+                            label='Address'
+                            value={patient.address}
+                            onChange={handleInputChange}
+                            margin='dense'
+                        />
+                        <TextField
+                            fullWidth
+                            name='phone'
+                            label='Phone'
+                            value={patient.phone}
+                            onChange={handleInputChange}
+                            margin='dense'
+
+                        />
+                        <TextField
+                            fullWidth
+                            name='description'
+                            label='Description'
+                            value={patient.description}
+                            onChange={handleInputChange}
+                            margin='dense'
+                            multiline
+                            rows={3}
+                        />
+                    </form>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleModalClose} color='primary'>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleCreateOrEdit} color='primary'>
+                        {isEdit ? 'Update' : 'Create'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
     );
-}
+};
 
 export default Patient;
-

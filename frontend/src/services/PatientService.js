@@ -12,7 +12,8 @@ const getPatients = async () => {
     const response = await axios.get(BASE_URL, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.message || error.message);
+    console.log(error);
+    return { error: error.response?.data?.message || error.message };
   }
 };
 
@@ -22,7 +23,7 @@ const getPatientById = async (id) => {
     const response = await axios.get(url, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.message || error.message);
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -31,7 +32,7 @@ const createPatient = async (patient) => {
     const response = await axios.post(BASE_URL, patient, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.message || error.message);
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -41,7 +42,7 @@ const updatePatient = async (id, patient) => {
     const response = await axios.put(url, patient, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.message || error.message);
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -51,7 +52,7 @@ const deletePatient = async (id) => {
     const response = await axios.delete(url, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.message || error.message);
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -64,15 +65,9 @@ const getPatientByName = async (patientName) => {
     const url = `${BASE_URL}/name`;
     const response = await axios.post(url, { name: patientName }, { headers: getAuthHeaders() });
 
-    if (response.status !== 200) {
-      throw new Error('Failed to fetch patient data');
-    }
-    console.log(response.data);
-
     return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    return { error: errorMessage };
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -84,16 +79,10 @@ const getPatientByCode = async (code) => {
 
     const url = `${BASE_URL}/code`;
     const response = await axios.post(url, { code }, { headers: getAuthHeaders() });
-
-    if (response.status !== 200) {
-      throw new Error('Failed to fetch patient data');
-    }
-    console.log(response.data);
-
+    
     return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    return { error: errorMessage };
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -103,8 +92,7 @@ const getMaxCode = async () => {
     const response = await axios.get(url, { headers: getAuthHeaders() });
     return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
-    return { error: errorMessage }
+    return { error: error.response?.data.message || error.message };
   }
 };
 
@@ -116,5 +104,5 @@ export {
   deletePatient,
   getPatientByName,
   getPatientByCode,
-  getMaxCode,
-};
+  getMaxCode
+}

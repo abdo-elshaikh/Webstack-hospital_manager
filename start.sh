@@ -1,5 +1,3 @@
 #!/bin/bash
-cd frontend || exit
-npm start &
-cd ../backend/nodejs || exit
-npm start
+token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YWY2ZjVhYWQ2NGRlNWM0ODAwMzY0MiIsImlhdCI6MTcyMjc3NDA4NSwiZXhwIjoxNzI1MzY2MDg1fQ.bcKu1UNu3bbRQJ8tG-Pho9ea3ZAemQZXxfHgPTKoa0A"
+token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YTI1MzMzNDk4YjdhNmQxNGI2YjUxYSIsImlhdCI6MTcyMjcyMDg2MywiZXhwIjoxNzI1MzEyODYzfQ.khZlenjhoT5ROhTsqMILBaofnaaNr21COqzprZeO4HM

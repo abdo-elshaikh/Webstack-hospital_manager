@@ -16,7 +16,13 @@ const createAppointment = async (req, res) => {
             return res.status(404).json({ message: 'Resource not found' });
         }
 
-        const newAppointment = new Appointment(appointment);
+        const newAppointment = new Appointment({
+            ...appointment,
+            service: service,
+            staff: staff,
+            patient: patient,
+            department: department
+        });
         await newAppointment.save();
         if (newAppointment) {
             return res.status(201).json({ message: 'Appointment created successfully', appointment: newAppointment });
@@ -31,6 +37,7 @@ const createAppointment = async (req, res) => {
 const getAllAppointments = async (req, res) => {
     try {
         const appointments = await Appointment.find()
+            .populate('department')
             .populate('service')
             .populate('staff')
             .populate('patient').sort({ date: 1 });
@@ -105,7 +112,7 @@ const deleteAll = async (req, res) => {
 
 const changeStatus = async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, update_by } = req.body;
 
     try {
         const appointment = await Appointment.findById(id);

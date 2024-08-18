@@ -1,6 +1,25 @@
-import { Modal, Button, Form, Table } from 'react-bootstrap';
-import { ToastContainer, toast } from 'react-toastify';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+    Container,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    Button,
+    Modal,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    TextField,
+    Paper,
+    IconButton,
+    TablePagination,
+} from '@mui/material';
+import { Edit, Delete, Visibility } from '@mui/icons-material';
+import { toast } from 'react-toastify';
 import {
     getAppointments,
     updateAppointment,
@@ -12,10 +31,10 @@ import { getPatients } from '../../services/PatientService';
 import { getServicesByDepartment } from '../../services/priceService';
 import { getStaffByDepartment } from '../../services/staffService';
 import { getAllDepartments } from '../../services/departmentService';
-import '../../styles/appointments.css';
 import { Link } from 'react-router-dom';
+import '../../styles/appointments.css';
 
-const Appointment = () => {
+const Appointment = ({ open }) => {
     const [appointments, setAppointments] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('create');
@@ -34,6 +53,10 @@ const Appointment = () => {
         status: ''
     });
 
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+
     useEffect(() => {
         loadAppointments();
         loadPatients();
@@ -41,38 +64,48 @@ const Appointment = () => {
     }, []);
 
     const loadAppointments = async () => {
-        getAppointments().then((data) => {
-            if(data.error) {
+        try {
+            const data = await getAppointments();
+            if (data.error) {
                 toast.error(data.error);
-                } else {
-                    setAppointments(data.appointments);
+            } else {
+                setAppointments(data.appointments);
             }
-        })
+        } catch (error) {
+            toast.error(`Error loading appointments: ${error.message}`);
+        }
     };
 
     const loadPatients = async () => {
-        getPatients().then((data) => {
-            if(data.error) {
+        try {
+            const data = await getPatients();
+            if (data.error) {
                 toast.error(data.error);
-                } else {
-                    setPatients(data.patients);
+            } else {
+                setPatients(data.patients);
             }
-    });
+        } catch (error) {
+            toast.error(`Error loading patients: ${error.message}`);
+        }
     };
 
     const loadDepartments = async () => {
-        getAllDepartments().then((data) => {
-            if(data.error) {
+        try {
+            const data = await getAllDepartments();
+            if (data.error) {
                 toast.error(data.error);
-                } else {
-                    setDepartments(data.departments);
+            } else {
+                setDepartments(data.departments);
             }
-        })
+        } catch (error) {
+            toast.error(`Error loading departments: ${error.message}`);
+        }
     };
 
     const handleDepartmentChange = async (e) => {
         const departmentId = e.target.value;
-        setFormData(prevData => ({ ...prevData, department: departmentId }));
+        setFormData((prevData) => ({ ...prevData, department: departmentId }));
+
         try {
             const servicesData = await getServicesByDepartment(departmentId);
             if (servicesData.services) {
@@ -83,10 +116,10 @@ const Appointment = () => {
 
             const staffData = await getStaffByDepartment(departmentId);
             if (staffData.staff) {
-                const staffs = staffData.staff;
-                staffs.map((s) => {
-                    s.name = s.user.name;
-                })
+                const staffs = staffData.staff.map((s) => ({
+                    ...s,
+                    name: s.user.name,
+                }));
                 setStaff(staffs);
             } else {
                 toast.error(staffData.message);
@@ -166,145 +199,188 @@ const Appointment = () => {
         }
     };
 
+    // Pagination handlers
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
-        <div>
-            <h1>Appointments</h1>
-            <Button onClick={() => handleModalOpen('create')}>Create Appointment</Button>
-            <div className="appointment-list">
-                <Table striped bordered hover>
-                    <thead>
-                        <tr>
-                            <th>Patient</th>
-                            <th>Department</th>
-                            <th>Service</th>
-                            <th>Staff</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {appointments?.map(appointment => (
-                            <tr key={appointment._id}>
-                                <td>{appointment.patient?.name}</td>
-                                <td>{appointment.department?.name}</td>
-                                <td>{appointment.service?.service}</td>
-                                <td>{appointment.staff?.name}</td>
-                                <td>{new Date(appointment.date).toLocaleString()}</td>
-                                <td>{appointment.status}</td>
-                                <td>
-                                    <Button onClick={() => handleModalOpen('update', appointment)}>Edit</Button>
-                                    <Button onClick={() => handleDelete(appointment._id)}>Delete</Button>
-                                    <Button onClick={() => handleChangeStatus(appointment._id, appointment.status)}>Change Status</Button>
-                                    <Link to={`/appointment/${appointment._id}`}>View</Link>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
+        <Container >
+            <Button variant="contained" color="primary" onClick={() => handleModalOpen('create')}>
+                Create Appointment
+            </Button>
+            <div className="appointment-list mt-3">
+                <TableContainer >
+                    <Table size="small" >
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>#</TableCell>
+                                <TableCell>Patient</TableCell>
+                                <TableCell>Department</TableCell>
+                                <TableCell>Service</TableCell>
+                                <TableCell>Staff</TableCell>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Status</TableCell>
+                                <TableCell>Action</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {appointments.length > 0 ? appointments
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((appointment, index) => (
+                                <TableRow key={appointment._id}>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell>{appointment.patient?.name}</TableCell>
+                                    <TableCell>{appointment.department?.name}</TableCell>
+                                    <TableCell>{appointment.service?.service}</TableCell>
+                                    <TableCell>{appointment.staff?.name}</TableCell>
+                                    <TableCell>{new Date(appointment.date).toLocaleString()}</TableCell>
+                                    <TableCell>{appointment.status}</TableCell>
+                                    <TableCell>
+                                        <IconButton onClick={() => handleModalOpen('update', appointment)}>
+                                            <Edit />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleDelete(appointment._id)}>
+                                            <Delete />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleChangeStatus(appointment._id, appointment.status)}>
+                                            <Visibility />
+                                        </IconButton>
+                                        <Button variant="contained" component={Link} to={`/appointment/${appointment._id}`}>
+                                            View
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )) : <TableRow><TableCell colSpan={7}>No appointments found</TableCell></TableRow>}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                {/* Pagination */}
+                <TablePagination
+                    component="div"
+                    count={appointments.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </div>
 
             {/* Modal for Create/Update Appointment */}
-            <Modal show={showModal} onHide={handleModalClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{modalType === 'create' ? 'Create Appointment' : 'Update Appointment'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group controlId="formPatient">
-                            <Form.Label>Patient</Form.Label>
-                            <Form.Control
-                                as="select"
+            <Modal open={showModal} onClose={handleModalClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Paper className="modal-content">
+                    <h2>{modalType === 'create' ? 'Create Appointment' : 'Update Appointment'}</h2>
+                    <form onSubmit={handleSubmit}>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Patient</InputLabel>
+                            <Select
                                 name="patient"
                                 value={formData.patient}
                                 onChange={handleInputChange}
                                 required
                             >
-                                <option value="">Select Patient</option>
-                                {patients.map(patient => (
-                                    <option key={patient._id} value={patient._id}>{patient.name}</option>
+                                <MenuItem value="">
+                                    <em>Select Patient</em>
+                                </MenuItem>
+                                {patients.map((patient) => (
+                                    <MenuItem key={patient._id} value={patient._id}>
+                                        {patient.name}
+                                    </MenuItem>
                                 ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formDepartment">
-                            <Form.Label>Department</Form.Label>
-                            <Form.Control
-                                as="select"
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Department</InputLabel>
+                            <Select
                                 name="department"
                                 value={formData.department}
                                 onChange={handleDepartmentChange}
                                 required
                             >
-                                <option value="">Select Department</option>
-                                {departments?.map(department => (
-                                    <option key={department._id} value={department._id}>{department.name}</option>
+                                <MenuItem value="">
+                                    <em>Select Department</em>
+                                </MenuItem>
+                                {departments.map((department) => (
+                                    <MenuItem key={department._id} value={department._id}>
+                                        {department.name}
+                                    </MenuItem>
                                 ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formService">
-                            <Form.Label>Service</Form.Label>
-                            <Form.Control
-                                as="select"
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Service</InputLabel>
+                            <Select
                                 name="service"
                                 value={formData.service}
                                 onChange={handleInputChange}
                                 required
                             >
-                                <option value="">Select Service</option>
-                                {services?.map(service => (
-                                    <option key={service._id} value={service._id}>{service.service}</option>
+                                <MenuItem value="">
+                                    <em>Select Service</em>
+                                </MenuItem>
+                                {services.map((service) => (
+                                    <MenuItem key={service._id} value={service._id}>
+                                        {service.service}
+                                    </MenuItem>
                                 ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formStaff">
-                            <Form.Label>Staff</Form.Label>
-                            <Form.Control
-                                as="select"
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Staff</InputLabel>
+                            <Select
                                 name="staff"
                                 value={formData.staff}
                                 onChange={handleInputChange}
                                 required
                             >
-                                <option value="">Select Staff</option>
-                                {staff.map(staffMember => (
-                                    <option key={staffMember._id} value={staffMember._id}>{staffMember.name}</option>
+                                <MenuItem value="">
+                                    <em>Select Staff</em>
+                                </MenuItem>
+                                {staff.map((staffMember) => (
+                                    <MenuItem key={staffMember._id} value={staffMember._id}>
+                                        {staffMember.name}
+                                    </MenuItem>
                                 ))}
-                            </Form.Control>
-                        </Form.Group>
-                        <Form.Group controlId="formDate">
-                            <Form.Label>Date</Form.Label>
-                            <Form.Control
-                                type="datetime-local"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="formStatus">
-                            <Form.Label>Status</Form.Label>
-                            <Form.Control
-                                as="select"
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            label="Date"
+                            type="datetime-local"
+                            name="date"
+                            value={formData.date}
+                            onChange={handleInputChange}
+                            fullWidth
+                            margin="normal"
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            required
+                        />
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Status</InputLabel>
+                            <Select
                                 name="status"
                                 value={formData.status}
                                 onChange={handleInputChange}
                                 required
                             >
-                                <option value="">Select Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </Form.Control>
-                        </Form.Group>
-                        <Button variant="primary" type="submit">
-                            {modalType === 'create' ? 'Create Appointment' : 'Update Appointment'}
+                                <MenuItem value="pending">Pending</MenuItem>
+                                <MenuItem value="completed">Completed</MenuItem>
+                                <MenuItem value="canceled">Canceled</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <Button variant="contained" color="primary" type="submit">
+                            {modalType === 'create' ? 'Create' : 'Update'}
                         </Button>
-                    </Form>
-                </Modal.Body>
+                    </form>
+                </Paper>
             </Modal>
-
-            <ToastContainer />
-        </div>
+        </Container>
     );
 };
 

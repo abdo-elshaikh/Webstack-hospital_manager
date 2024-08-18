@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
         }
     },
     role: { type: String, default: 'user', required: true },
-    isActive: { type: Boolean, required: true }
+    isActive: { type: Boolean, required: true },
+    image: { type: String, required: false, default: '' },
 }, {
     timestamps: true
 });

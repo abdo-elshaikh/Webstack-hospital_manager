@@ -1,20 +1,46 @@
-// src/components/Department.js
 import { useState, useEffect } from 'react';
-import { getAllDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentById } from "../../services/departmentService";
-import { Modal, Button, Table, Alert, Dropdown, DropdownButton, DropdownItem, Toast, Form, FormControl, FormGroup, FormLabel, FormSelect } from 'react-bootstrap';
+import {
+    Button,
+    Modal,
+    Table,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    Paper,
+    TextField,
+    IconButton,
+    Typography,
+    Box,
+    FormControl,
+    Container,
+    Toolbar,
+    Pagination,
+} from '@mui/material';
+import { Edit, Delete, Add } from '@mui/icons-material';
 import { toast } from 'react-toastify';
+import {
+    getAllDepartments,
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
+    getDepartmentById
+} from '../../services/departmentService';
 import '../../styles/department.css';
 
-const Department = () => {
+const Department = ({ open }) => {
     const [departments, setDepartments] = useState([]);
     const [department, setDepartment] = useState({ name: '', description: '' });
     const [isEdit, setIsEdit] = useState(false);
-    const [IsModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [departmentsPerPage, setDepartmentsPerPage] = useState(5);
 
     useEffect(() => {
         getAllDepartments().then((data) => {
             if (data.error) {
-                setError(data.error);
+                toast.error(data.error);
             } else {
                 setDepartments(data.departments);
             }
@@ -45,7 +71,7 @@ const Department = () => {
         setDepartment({ name: '', description: '' });
         setIsEdit(false);
         setIsModalOpen(false);
-    }
+    };
 
     const handleDelete = async (id) => {
         const data = await deleteDepartment(id);
@@ -55,7 +81,7 @@ const Department = () => {
             setDepartments(departments.filter((d) => d._id !== id));
             toast.success('Department deleted successfully');
         }
-    }
+    };
 
     const handleEdit = async (id) => {
         const data = await getDepartmentById(id);
@@ -66,66 +92,111 @@ const Department = () => {
             setIsEdit(true);
             setIsModalOpen(true);
         }
-    }
+    };
+
+    const indexOfLastDepartment = currentPage * departmentsPerPage;
+    const indexOfFirstDepartment = indexOfLastDepartment - departmentsPerPage;
+    const currentDepartments = departments.slice(indexOfFirstDepartment, indexOfLastDepartment);
+
+    const handlePageChange = (event, newPage) => {
+        setCurrentPage(newPage);
+    };
 
     return (
-        <div className="container">
-            <div className="d-flex justify-content-between">
-                <h1>Departments</h1>
-                <Button onClick={() => {
-                    setDepartment({ name: '', description: '' });
-                    setIsEdit(false);
-                    setIsModalOpen(true);
-                }}>Add Department</Button>
-            </div>
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {departments.map((department, index) => (
-                        <tr key={department._id}>
-                            <td>{index + 1}</td>
-                            <td>{department.name}</td>
-                            <td>{department.description}</td>
-                            <td>
-                                <DropdownButton id="dropdown-basic-button" title="Actions">
-                                    <DropdownItem onClick={() => handleEdit(department._id)}>Edit</DropdownItem>
-                                    <DropdownItem onClick={() => handleDelete(department._id)}>Delete</DropdownItem>
-                                </DropdownButton>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </Table>
-            <Modal show={IsModalOpen} onHide={() => setIsModalOpen(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{isEdit ? 'Edit Department' : 'Add Department'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <FormGroup>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl type="text" value={department.name} onChange={(e) => setDepartment({ ...department, name: e.target.value })} />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl as="textarea" value={department.description} onChange={(e) => setDepartment({ ...department, description: e.target.value })} />
-                        </FormGroup>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Close</Button>
-                    <Button variant="primary" onClick={handleCreateOrUpdate}>{isEdit ? 'Update' : 'Create'}</Button>
-                </Modal.Footer>
+        <Container >
+            <Toolbar>
+                <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => {
+                        setDepartment({ name: '', description: '' });
+                        setIsEdit(false);
+                        setIsModalOpen(true);
+                    }}
+                >
+                    Add Department
+                </Button>
+            </Toolbar>
+            <TableContainer>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>#</TableCell>
+                            <TableCell>Name</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {currentDepartments.length > 0 ? currentDepartments.map((department, index) => (
+                            <TableRow key={department._id}>
+                                <TableCell>{indexOfFirstDepartment + index + 1}</TableCell>
+                                <TableCell>{department.name}</TableCell>
+                                <TableCell>{department.description}</TableCell>
+                                <TableCell>
+                                    <IconButton onClick={() => handleEdit(department._id)} color="primary">
+                                        <Edit />
+                                    </IconButton>
+                                    <IconButton onClick={() => handleDelete(department._id)} color="secondary">
+                                        <Delete />
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        )) : <TableRow><TableCell colSpan={4}>No departments found</TableCell></TableRow>}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <Pagination
+                count={Math.ceil(departments.length / departmentsPerPage)}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                sx={{ mt: 2 }}
+            />
+            <Modal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Paper sx={{ p: 4, maxWidth: 500, margin: 'auto', mt: 4 }}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        {isEdit ? 'Edit Department' : 'Add Department'}
+                    </Typography>
+                    <Box component="form" onSubmit={handleCreateOrUpdate} sx={{ mt: 2 }}>
+                        <FormControl fullWidth margin="normal">
+                            <TextField
+                                label="Name"
+                                variant="outlined"
+                                value={department.name}
+                                onChange={(e) => setDepartment({ ...department, name: e.target.value })}
+                                required
+                            />
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <TextField
+                                label="Description"
+                                variant="outlined"
+                                multiline
+                                rows={4}
+                                value={department.description}
+                                onChange={(e) => setDepartment({ ...department, description: e.target.value })}
+                                required
+                            />
+                        </FormControl>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                            <Button variant="contained" color="secondary" onClick={() => setIsModalOpen(false)}>
+                                Close
+                            </Button>
+                            <Button variant="contained" color="primary" type="submit" sx={{ ml: 2 }}>
+                                {isEdit ? 'Update' : 'Create'}
+                            </Button>
+                        </Box>
+                    </Box>
+                </Paper>
             </Modal>
-        </div>
+        </Container>
     );
-}
+};
 
 export default Department;

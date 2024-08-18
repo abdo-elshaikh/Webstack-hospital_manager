@@ -51,15 +51,16 @@ const updateAppointment = async (id, appointment) => {
 const deleteAppointment = async (id) => {
     try {
         const response = await axios.delete(`${URL}/${id}`, { headers: getHeaders() });
+        console.log(response.data);
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };
     }
 }
 
-const changeAppointmentStatus = async (id, status) => {
+const changeAppointmentStatus = async (id, status, update_by) => {
     try {
-        const response = await axios.put(`${URL}/status/${id}`, { status }, { headers: getHeaders() });
+        const response = await axios.put(`${URL}/status/${id}`, { status, update_by }, { headers: getHeaders() });
         return response.data;
     } catch (error) {
         return { error: error.response.data.message || error.message };

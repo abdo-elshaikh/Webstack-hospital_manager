@@ -1,16 +1,37 @@
 import { useState, useEffect } from 'react';
 import { getPositions, createPosition, updatePosition, deletePosition } from '../../services/positionService';
-import { Modal, Button, Table, Alert, Dropdown, DropdownButton, DropdownItem, Toast, Form, FormControl, FormGroup, FormLabel, FormSelect, ToastHeader } from 'react-bootstrap';
+import {
+    Button,
+    Modal,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    TextField,
+    IconButton,
+    Typography,
+    Box,
+    Container,
+    Toolbar
+} from '@mui/material';
+import { Edit, Delete, Add } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import '../../styles/department.css';
 
-const Position = () => {
+const Position = ({ open }) => {
     const [positions, setPositions] = useState([]);
     const [position, setPosition] = useState({ name: '', description: '' });
     const [isEditing, setIsEditing] = useState(false);
-    const [IsModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
+        fetchPositions();
+    }, []);
+
+    const fetchPositions = () => {
         getPositions().then((data) => {
             if (data.error) {
                 toast.error(data.error);
@@ -18,44 +39,46 @@ const Position = () => {
                 setPositions(data.positions);
             }
         });
-    }, []);
+    };
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setPosition({ ...position, [name]: value });
-    }
+    };
 
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
         if (isEditing) {
-            const data = await updatePosition(position._id, position);
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                const index = positions.findIndex((d) => d._id === position._id);
-                positions[index] = data.position;
-                setPositions([...positions]);
-                toast.success(data.message);
-            }
+            updatePosition(position._id, position).then((data) => {
+                if (data.error) {
+                    toast.error(data.error);
+                } else {
+                    setPositions(positions.map((p) => p._id === data.position._id ? data.position : p));
+                    toast.success(data.message);
+                }
+            });
         } else {
-            const data = await createPosition(position);
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                setPositions([...positions, data.position]);
-                toast.success(data.message);
-            }
+            createPosition(position).then((data) => {
+                if (data.error) {
+                    toast.error(data.error);
+                } else {
+                    setPositions([...positions, data.position]);
+                    toast.success(data.message);
+                }
+            });
         }
         setPosition({ name: '', description: '' });
         setIsEditing(false);
         setIsModalOpen(false);
-    }
+    };
+
     const handleEdit = (id) => {
-        const pos = positions.find((p) => p._id === id);
-        setPosition(pos);
+        const p = positions.find((p) => p._id === id);
+        setPosition(p);
         setIsEditing(true);
         setIsModalOpen(true);
-    }
+    };
+
     const handleDelete = async (id) => {
         const data = await deletePosition(id);
         if (data.error) {
@@ -64,64 +87,98 @@ const Position = () => {
             setPositions(positions.filter((d) => d._id !== id));
             toast.success(data.message);
         }
-    }
+    };
+
     return (
-        <div>
-            <Button onClick={() => setIsModalOpen(true)}>Create Position</Button>
-            <Modal show={IsModalOpen} onHide={() => setIsModalOpen(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{isEditing ? 'Edit Position' : 'Create Position'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <FormGroup>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl
-                                type='text'
-                                name='name'
-                                value={position.name}
-                                onChange={handleInputChange}
-                            />
-                        </FormGroup>
-                        <FormGroup>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl
-                                as='textarea'
-                                name='description'
-                                value={position.description}
-                                onChange={handleInputChange}
-                            />
-                        </FormGroup>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button onClick={handleCreateOrUpdate}>{isEditing ? 'Edit' : 'Create'}</Button>
-                </Modal.Footer>
+        <Container>
+            <Toolbar>
+                <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => {
+                        setPosition({ name: '', description: '' });
+                        setIsEditing(false);
+                        setIsModalOpen(true);
+                    }}
+                >
+                    Create Position
+                </Button>
+            </Toolbar>
+            <TableContainer sx={{ mt: 3 }}>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>#</TableCell>
+                            <TableCell>Name</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {positions.map((pos, index) => (
+                            <TableRow key={pos._id}>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{pos.name}</TableCell>
+                                <TableCell>{pos.description}</TableCell>
+                                <TableCell>
+                                    <IconButton onClick={() => handleEdit(pos._id)} color="primary">
+                                        <Edit />
+                                    </IconButton>
+                                    <IconButton onClick={() => handleDelete(pos._id)} color="secondary">
+                                        <Delete />
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <Modal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Paper sx={{ p: 4, maxWidth: 500, margin: 'auto', mt: 4 }}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        {isEditing ? 'Edit Position' : 'Create Position'}
+                    </Typography>
+                    <Box component="form" onSubmit={handleCreateOrUpdate} sx={{ mt: 2 }}>
+                        <TextField
+                            fullWidth
+                            margin="normal"
+                            label="Name"
+                            variant="outlined"
+                            name="name"
+                            value={position.name}
+                            onChange={handleInputChange}
+                            required
+                        />
+                        <TextField
+                            fullWidth
+                            margin="normal"
+                            label="Description"
+                            variant="outlined"
+                            name="description"
+                            multiline
+                            rows={4}
+                            value={position.description}
+                            onChange={handleInputChange}
+                            required
+                        />
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                            <Button variant="contained" color="secondary" onClick={() => setIsModalOpen(false)}>
+                                Close
+                            </Button>
+                            <Button variant="contained" color="primary" type="submit" sx={{ ml: 2 }}>
+                                {isEditing ? 'Update' : 'Create'}
+                            </Button>
+                        </Box>
+                    </Box>
+                </Paper>
             </Modal>
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {positions.map((pos, index) => (
-                        <tr key={pos._id}>
-                            <td>{index + 1}</td>
-                            <td>{pos.name}</td>
-                            <td>{pos.description}</td>
-                            <td>
-                                <Button onClick={() => handleEdit(pos._id)}>Edit</Button>
-                                <Button onClick={() => handleDelete(pos._id)}>Delete</Button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </Table>
-        </div>
+        </Container>
     );
-}
+};
+
 export default Position;

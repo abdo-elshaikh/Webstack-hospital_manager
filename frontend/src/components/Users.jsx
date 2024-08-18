@@ -1,105 +1,128 @@
-import { getUsers, deleteUser, updateUser, updateUserActivation } from '../services/AdminService'
-import { useState, useEffect } from 'react';
-import { Table,  Dropdown, DropdownButton, } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { getUsers, deleteUser, updateUserRole, updateUserActivation } from '../services/AdminService';
+import { getAllStaff } from '../services/staffService';
 import { toast } from 'react-toastify';
+import {
+  Container,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Select,
+  MenuItem,
+  Button,
+  IconButton,
+  Paper
+} from '@mui/material';
+import { Delete, Edit, Visibility, VisibilityOff } from '@mui/icons-material';
 import '../styles/admin.css';
-import { Link } from 'react-router-dom';
 
-const Users = () => {
-    const [users, setUsers] = useState([]);
-    const currentUser = JSON.parse(localStorage.getItem('user'));
+const Users = ({ currentUser, open }) => {
+  const [users, setUsers] = useState([]);
 
-    useEffect(() => {
-        getUsers().then((data) => {
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                const users = data.users.filter((user) => user._id != currentUser._id)
-                setUsers(users);
-            }
-        });
-    }, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      getUsers().then((data) => {
+        const users = data.users.filter(user => user._id !== currentUser._id);
+        setUsers(users);
+      }).catch((error) => {
+        toast.error(error.response.data.error);
+      });
+    };
 
-    const handleDelete = async (id) => {
-        // alert befor delete user if ok delete other wise cancel
-        if (window.confirm(`Are you sure you want to delete ${users.find((user) => user._id === id).name
-            }?`)) {
-            deleteUser(id).then((data) => {
-                if (data.error) {
-                    toast.error(data.error);
-                } else {
-                    const newUsers = users.filter((user) => user._id !== id);
-                    setUsers(newUsers);
-                    toast.success(data.message);
-                }
-            });
-        }
+    fetchUsers();
+  }, []);
+
+  const handleDelete = async (id) => {
+    getAllStaff().then((data) => {
+      const userStaff = data.staff.find((staff) => staff.user === id);
+      if (userStaff) {
+        toast.error(`User ${users.find((user) => user._id === id)?.name} is in staff ${userStaff.name} and cannot be deleted`);
+        return;
+      }
+    });
+
+    if (window.confirm(`Are you sure you want to delete ${users.find((user) => user._id === id)?.name}?`)) {
+      deleteUser(id).then((data) => {
+        const updatedUsers = users.filter((user) => user._id !== id);
+        setUsers(updatedUsers);
+        toast.success(data.message);
+      }).catch((error) => {
+        toast.error(error.response.data.error);
+      });
     }
+  };
 
-    const handleEdit = async (id, role) => {
-        updateUser(id, role).then((data) => {
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                const index = users.findIndex((u) => u._id === id);
-                users[index] = data.user;
-                setUsers([...users]);
-                toast.success(data.message);
-            }
-        })
-    }
+  const handleEdit = async (id, role) => {
+    updateUserRole(id, role).then((data) => {
+      const updatedUser = data.user;
+      const updatedUsers = users.map((user) => (user._id === id ? updatedUser : user));
+      setUsers(updatedUsers);
+      toast.success(data.message);
+    }).catch((error) => {
+      toast.error(error.response.data.error);
+    });
+  };
 
-    const handleActivation = async (id) => {
-        updateUserActivation(id).then((data) => {
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                const index = users.findIndex((u) => u._id === id);
-                users[index].isActive = data.user.isActive;
-                setUsers([...users]);
-                toast.success(data.message);
-            }
-        });
+  const handleActivation = async (id) => {
+    updateUserActivation(id).then((data) => {
+      const updatedUser = data.user;
+      const updatedUsers = users.map((user) => (user._id === id ? updatedUser : user));
+      setUsers(updatedUsers);
+      toast.success(data.message);
+    }).catch((error) => {
+      toast.error(error.response.data.error);
+    });
+  };
 
-    }
+  return (
+    <Container >
+      <TableContainer  sx={{ mt: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Full Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Active</TableCell>
+              <TableCell>Action</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user._id}>
+                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Select
+                    value={user.role}
+                    onChange={(e) => handleEdit(user._id, e.target.value)}
+                    variant="outlined"
+                    fullWidth
+                  >
+                    <MenuItem value="user">User</MenuItem>
+                    <MenuItem value="admin">Admin</MenuItem>
+                    <MenuItem value="staff">Staff</MenuItem>
+                  </Select>
+                </TableCell>
+                <TableCell>{user.isActive ? "Active" : "Not Active"}</TableCell>
+                <TableCell sx={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', flexWrap: 'wrap', height: '100%' }}>
+                  <IconButton onClick={() => handleActivation(user._id)}>
+                    {user.isActive ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(user._id)}>
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
+  );
+};
 
-    return (
-        <>
-            <h2 className="text-center">Users</h2>
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Active</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map((user) => (
-                        <tr key={user._id}>
-                            <td>{user.name}</td>
-                            <td>{user.email}</td>
-                            <td>
-                                <select className="form-select" value={user.role} onChange={(e) => handleEdit(user._id, e.target.value)}>
-                                    <option value="user">User</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="staff">Staff</option>
-                                </select>
-                            </td>
-                            <td>{user.isActive ? "Active" : "Not Active"}</td>
-                            <td>
-                                <DropdownButton id="dropdown-basic-button" title="Action">
-                                    <Dropdown.Item onClick={() => handleActivation(user._id)}>{user.isActive ? "Deactivate" : "Activate"}</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleDelete(user._id)}>Delete</Dropdown.Item>
-                                </DropdownButton>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </Table>
-        </>
-    );
-}
 export default Users;
