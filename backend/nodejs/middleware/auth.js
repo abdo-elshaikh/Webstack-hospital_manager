@@ -41,7 +41,7 @@ const register = async (req, res) => {
         }
 
         const activationToken = generateToken(newUser._id);
-        const activationUrl = `${process.env.CLIENT_URL}/activate/${activationToken}`;
+        const activationUrl = `${process.env.CLIENT_URL}/auth/activate/${activationToken}`;
         const activationMessage = `Hello ${newUser.name},\nWelcome to our platform.\nPlease confirm your email by clicking on the following link to activate your account:\n\n${activationUrl}`;
 
         await sendEmail({

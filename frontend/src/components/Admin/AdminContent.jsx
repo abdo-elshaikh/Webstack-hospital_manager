@@ -1,14 +1,23 @@
-import { Container, Typography } from '@mui/material';
+import { Box, Typography, Toolbar } from '@mui/material';
+import { PropTypes } from 'prop-types';
+import AdminSubHeader from './AdminSubHeader';
+
 
 const AdminContent = ({ title, children }) => {
+    document.title = `Admin - ${title} | HMS`;
     return (
-        <Container sx={{ mt: 12 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-                {title}
-            </Typography>
-            {children}
-        </Container>
+        <Box sx={{ flexGrow: 1 , width: '100%'}}>
+            <AdminSubHeader title={title} />
+            <Box sx={{ p: 3 }}>
+                {children}
+            </Box>
+        </Box>
     );
+};
+
+AdminContent.propTypes = {
+    title: PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired,
 };
 
 export default AdminContent;

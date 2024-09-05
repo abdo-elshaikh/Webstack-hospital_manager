@@ -13,7 +13,7 @@ const createAppointment = async (req, res) => {
         const department = staff ? await Department.findById(staff.department) : null;
 
         if (!service || !staff || !patient || !department) {
-            return res.status(404).json({ message: 'Resource not found' });
+            return res.status(404).json({ message: 'Resource not found to create appointment' });
         }
 
         const newAppointment = new Appointment({

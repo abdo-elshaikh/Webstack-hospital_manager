@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Box, IconButton, useTheme, useMediaQuery } from '@mui/material';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Profile from '../components/Profile';
 import Header from '../components/Header';
 import TopHeader from '../components/TopHeader';
 import HomeContent from '../components/Home/HomeContent';
@@ -8,10 +10,11 @@ import AboutUs from '../components/Home/AboutUs';
 import Gallery from '../components/Home/Gallery';
 import OnlineBooking from '../components/Home/OnlineBooking';
 import Location from '../components/Home/Location';
-import NotFound from '../components/NotFound';
+import ContactUs from '../components/Home/ContactUs';
 import Footer from '../components/Footer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowAltCircleUp } from '@fortawesome/free-solid-svg-icons';
+import PrivateRoute from '../components/PrivateRoute';
 import '../styles/home.css';
 
 const Home = () => {
@@ -19,6 +22,8 @@ const Home = () => {
     const [showTopHeader, setShowTopHeader] = useState(true);
     const [headerFixed, setHeaderFixed] = useState(false);
 
+    const location = useLocation();
+    const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -35,27 +40,23 @@ const Home = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+
     return (
         <>
-            <Box sx={{ position: 'relative' }}>
-                {showTopHeader && <TopHeader />}
-                <Header isFixed={headerFixed} />
-            </Box>
-
-            <Container sx={{ position: 'relative', marginX: 'auto' }}>
-                <Routes>
-                    <Route path="/" element={<HomeContent />} />
-                    <Route path="/about-us" element={<AboutUs />} />
-                    <Route path="/gallery" element={<Gallery />} />
-                    <Route path="/online-booking" element={<OnlineBooking />} />
-                    <Route path="/location" element={<Location />} />
-                    <Route path="/home" element={<HomeContent />} />
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Footer />
-            </Container>
-
-            {showScrollToTopButton && (
+            {showTopHeader && <TopHeader />}
+            <Header isFixed={headerFixed} />
+            <Routes>
+                <Route path="/" element={<HomeContent />} />
+                <Route path="/about-us" element={<AboutUs />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/online-booking" element={<OnlineBooking />} />
+                <Route path="/location" element={<Location />} />
+                <Route path="/profile" element={<PrivateRoute allowedRoles={['user', 'admin', 'staff']} element={Profile} />} />
+                <Route path="*" element={ <Navigate to='/not-found' />} />
+            </Routes>
+            <Footer />
+            {showScrollToTopButton && !isMobile && (
                 <IconButton
                     size="large"
                     aria-label="scroll back to top"

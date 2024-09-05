@@ -13,7 +13,7 @@ const bookAppointment = async (req, res) => {
         const savedAppointment = await newAppointment.save();
         console.log("Saved appointment:", savedAppointment);
         if (savedAppointment) {
-            res.status(201).json({ appointment: savedAppointment,  message: "Appointment booked successfully!" });
+            res.status(201).json({ appointment: savedAppointment, message: "Appointment booked successfully!" });
         } else {
             res.status(400).json({ message: "Error booking appointment!" });
         }
@@ -66,4 +66,19 @@ const getBookingByUser = async (req, res) => {
     }
 }
 
-module.exports = { bookAppointment, getBookingBetweenDate, getBookingByUser, getAllBooking };
+const updateBooking = async (req, res) => {
+    const { id } = req.params;
+    const { bookStatus } = req.body;
+    try {
+        const updateBooking = await BookAppointment.findByIdAndUpdate(id, { status: bookStatus }, { new: true });
+        if (updateBooking) {
+            res.status(200).json({ booking: updateBooking, message: 'Booking updated successfully' });
+        } else {
+            res.status(404).json({ message: 'Booking not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports = { bookAppointment, getBookingBetweenDate, getBookingByUser, getAllBooking, updateBooking };

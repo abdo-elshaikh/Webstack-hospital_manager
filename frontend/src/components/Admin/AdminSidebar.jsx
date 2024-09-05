@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar, IconButton, Divider, useTheme, useMediaQuery } from '@mui/material';
-import { LocationOn, Home, People, CalendarToday, LocalHospital, SevereColdSharp, Group, Person2, BookOnline, ExitToApp, GroupSharp, GroupWork } from '@mui/icons-material';
+import { LocationOn, Home, People, CalendarToday, LocalHospital, SevereColdSharp, Group, Person2, BookOnline, ExitToApp, Message, GroupWork } from '@mui/icons-material';
 import { Link,  } from 'react-router-dom';
 
 const AdminSidebar = ({ open, setOpen }) => {
@@ -64,6 +64,10 @@ const AdminSidebar = ({ open, setOpen }) => {
                     <ListItem button component={Link} to="/admin/appointments">
                         <ListItemIcon><CalendarToday /></ListItemIcon>
                         <ListItemText primary="Manage Appointments" />
+                    </ListItem>
+                    <ListItem button component={Link} to="/admin/contacts">
+                        <ListItemIcon><Group /></ListItemIcon>
+                        <ListItemText primary="Manage Contacts" />
                     </ListItem>
                     <ListItem button component={Link} to="/admin/book-appointment">
                         <ListItemIcon><BookOnline /></ListItemIcon>

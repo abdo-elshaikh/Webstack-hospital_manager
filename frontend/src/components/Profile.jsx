@@ -23,7 +23,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import { toast } from 'react-toastify';
 import { updateUser } from '../services/AuthService';
-import { useAuth } from '../contexts/AuthContext';
+import useAuth from '../contexts/useAuth';
 
 const schema = yup.object().shape({
     name: yup.string().required('Name is required'),
@@ -124,8 +124,11 @@ const Profile = () => {
     if (!user) {
         return (
             <Box className="profile" sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography variant="h6">Loading...</Typography>
-                <Typography variant="subtitle1">Please wait...</Typography>
+                <Typography variant="h5">Loading...</Typography>
+                <Typography variant="body1">Please wait while we load your profile.</Typography>
+                <img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="Loading..." />
+                <Button onClick={handleLogout}>Logout</Button>
+                <Button onClick={handleUserUpdate}>Update</Button>
             </Box>
         );
     }
@@ -140,13 +143,13 @@ const Profile = () => {
         } else if (user.image) {
             return `http://localhost:5000/uploads/${user.image}`;
         } else {
-            return 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+            return 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
         }
     };
 
     return (
         <>
-            {!isStaffPage && !isAdminPage && <Header />}
+            {/* {!isStaffPage && !isAdminPage && <Header />} */}
             <Box className="profile container" sx={{ p: 2, minHeight: '100vh' }}>
                 <Grid container spacing={3} mt={12} p={3} bgcolor={'#f8f9fa'} borderRadius={5}>
                     <Grid item xs={12} md={3} >

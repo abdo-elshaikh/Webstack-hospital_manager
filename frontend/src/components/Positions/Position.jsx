@@ -90,10 +90,13 @@ const Position = ({ open }) => {
     };
 
     return (
-        <Container>
-            <Toolbar>
+        <Box component={Paper} sx={{ p: 2, boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
+            <Toolbar
+                sx={{ border: '1px solid #e0e0e0', mb: 2, borderRadius: 1 }}
+                bgcolor="background.default"
+            >
                 <Button
-                    variant="contained"
+                    variant="outlined"
                     startIcon={<Add />}
                     onClick={() => {
                         setPosition({ name: '', description: '' });
@@ -121,7 +124,7 @@ const Position = ({ open }) => {
                                 <TableCell>{pos.name}</TableCell>
                                 <TableCell>{pos.description}</TableCell>
                                 <TableCell>
-                                    <IconButton onClick={() => handleEdit(pos._id)} color="primary">
+                                    <IconButton sx={{ mr: 1 }} onClick={() => handleEdit(pos._id)} color="primary">
                                         <Edit />
                                     </IconButton>
                                     <IconButton onClick={() => handleDelete(pos._id)} color="secondary">
@@ -177,7 +180,7 @@ const Position = ({ open }) => {
                     </Box>
                 </Paper>
             </Modal>
-        </Container>
+        </Box>
     );
 };
 

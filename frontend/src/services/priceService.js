@@ -6,7 +6,7 @@ const serviceUrl = 'http://localhost:5000/api/services';
 // router.route('/sertvice-price/:id').get(getServicePriceByType);
 
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
         return {
             Authorization: `Bearer ${token}`,

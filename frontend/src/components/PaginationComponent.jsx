@@ -1,4 +1,5 @@
-import { Pagination } from "react-bootstrap";
+import { Pagination, TablePagination } from "@mui/material";
+import { propTypes } from "react-bootstrap/esm/Image";
 
 const PaginationComponent = ({ totalPages, currentPage, setCurrentPage }) => {
     const paginationItems = Array.from({ length: totalPages }, (_, index) => (
@@ -18,4 +19,24 @@ const PaginationComponent = ({ totalPages, currentPage, setCurrentPage }) => {
     );
 };
 
-export default PaginationComponent;
+const TablePaginationComponent = ({ totalPages, currentPage, setCurrentPage }) => {
+    const paginationItems = Array.from({ length: totalPages }, (_, index) => (
+        <TablePagination
+            key={index + 1}
+            count={totalPages}
+            page={index + 1}
+            onPageChange={(event, page) => setCurrentPage(page)}
+        />
+    ));
+
+    return (
+        <TablePagination
+            component="div"
+            count={totalPages}
+            page={currentPage - 1}
+            onPageChange={(event, page) => setCurrentPage(page + 1)}
+        />
+    );
+};
+
+export { PaginationComponent, TablePaginationComponent };

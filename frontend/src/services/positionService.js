@@ -3,7 +3,7 @@ import axios from 'axios';
 const positionsUrl = 'http://localhost:5000/api/positions';
 
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
         return {
             Authorization: `Bearer ${token}`,

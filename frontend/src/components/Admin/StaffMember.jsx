@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllStaff, createStaff, updateStaff, deleteStaff } from '../../services/staffService';
+import { getAllStaff, createStaff, updateStaff, deleteStaff, } from '../../services/staffService';
 import { getUsers } from '../../services/AdminService';
 import { getAllDepartments } from '../../services/departmentService';
 import { getPositions } from '../../services/positionService';
@@ -23,12 +23,19 @@ import {
     Switch,
     TablePagination,
     Typography,
+    FormControlLabel,
+    Checkbox,
+    Box,
+    Toolbar
 } from '@mui/material';
+import { Edit, Delete, Add } from '@mui/icons-material';
 import '../../styles/staff.css';
 
-const Staff = ({ open }) => {
+const Staff = () => {
     const [staffList, setStaffList] = useState([]);
-    const [staff, setStaff] = useState({ userId: '', departmentId: '', positionId: '', status: false, contact: '', salary: '' });
+    const [staff, setStaff] = useState(
+        { userId: '', departmentId: '', positionId: '', status: false, contact: '', salary: '' }
+    );
     const [users, setUsers] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [positions, setPositions] = useState([]);
@@ -86,6 +93,7 @@ const Staff = ({ open }) => {
                 if (data.message) {
                     toast.error(data.message);
                 } else {
+                    console.log(data.staff);
                     setStaffList([...staffList, data.staff]);
                     toast.success('Staff created successfully');
                 }
@@ -132,96 +140,101 @@ const Staff = ({ open }) => {
     };
 
     return (
-        <Container maxWidth="lg" >
-            <Button variant="contained" color="primary" onClick={() => {
-                setStaff({ userId: '', departmentId: '', positionId: '', status: false, contact: '', salary: '' });
-                setEditingStaff(false);
-                setIsModalOpen(true);
-            }} className="mb-3">
-                Create Staff
-            </Button>
-
+        <Box component={Paper} sx={{ p: 2, boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
+            <Toolbar
+                sx={{ border: '1px solid #e0e0e0', mb: 2, borderRadius: 1 , display: 'flex', alignItems: 'center'}}
+                bgcolor="background.default"
+            >
+                <Button variant="outlined" color="primary" onClick={() => {
+                    setStaff({ userId: '', departmentId: '', positionId: '', status: false, contact: '', salary: '' });
+                    setEditingStaff(false);
+                    setIsModalOpen(true);
+                }} className="mb-3" startIcon={<Add />}>
+                    Create Staff
+                </Button>
+            </Toolbar>
             <Modal sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                <Paper className="modal-content" sx={{ p: 4 }} component="form" >
-                    <Typography variant="h6" component="h2">
-                        {editingStaff ? 'Edit Staff' : 'Create Staff'}
-                    </Typography>
+                <Box sx={{
+                    backgroundColor: 'white',
+                    width: '100%',
+                    maxWidth: '500px',
+                    borderRadius: '5px',
+                    p: 2
+                }}>
                     <form onSubmit={handleCreateOrUpdate}>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>User</InputLabel>
-                            <Select name="userId" value={staff.userId} onChange={handleInputChange} required>
-                                <MenuItem value="">
-                                    <em>Select User</em>
-                                </MenuItem>
-                                {availableUsers.map((user) => (
-                                    <MenuItem key={user._id} value={user._id}>
-                                        {user.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Department</InputLabel>
-                            <Select name="departmentId" value={staff.departmentId} onChange={handleInputChange} required>
-                                <MenuItem value="">
-                                    <em>Select Department</em>
-                                </MenuItem>
-                                {departments.map((department) => (
-                                    <MenuItem key={department._id} value={department._id}>
-                                        {department.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Position</InputLabel>
-                            <Select name="positionId" value={staff.positionId} onChange={handleInputChange} required>
-                                <MenuItem value="">
-                                    <em>Select Position</em>
-                                </MenuItem>
-                                {positions.map((position) => (
-                                    <MenuItem key={position._id} value={position._id}>
-                                        {position.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <Typography>Status</Typography>
-                            <Switch
-                                checked={staff.status}
-                                onChange={handleInputChange}
-                                name="status"
-                                color="primary"
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <FormControl sx={{ width: '100%' }}>
+                                <InputLabel>User</InputLabel>
+                                <Select
+                                    name="userId"
+                                    value={staff.userId}
+                                    onChange={handleInputChange}
+                                >
+                                    <MenuItem value="">None</MenuItem>
+                                    {availableUsers.map((user) => (
+                                        <MenuItem key={user._id} value={user._id}>
+                                            {user.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl sx={{ width: '100%' }}>
+                                <InputLabel>Department</InputLabel>
+                                <Select
+                                    name="departmentId"
+                                    value={staff.departmentId}
+                                    onChange={handleInputChange}
+                                >
+                                    <MenuItem value="">None</MenuItem>
+                                    {departments.map((department) => (
+                                        <MenuItem key={department._id} value={department._id}>
+                                            {department.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl sx={{ width: '100%' }}>
+                                <InputLabel>Position</InputLabel>
+                                <Select
+                                    name="positionId"
+                                    value={staff.positionId}
+                                    onChange={handleInputChange}
+                                >
+                                    <MenuItem value="">None</MenuItem>
+                                    {positions.map((position) => (
+                                        <MenuItem key={position._id} value={position._id}>
+                                            {position.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControlLabel
+                                control={<Switch name="status" checked={staff.status} onChange={handleInputChange} />}
+                                label="Status"
                             />
-                        </FormControl>
-                        <TextField
-                            label="Contact"
-                            name="contact"
-                            value={staff.contact}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                            required
-                        />
-                        <TextField
-                            label="Salary"
-                            name="salary"
-                            type="number"
-                            value={staff.salary}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                            required
-                        />
-                        <Button variant="contained" color="primary" type="submit">
-                            {editingStaff ? 'Update' : 'Create'}
-                        </Button>
-                        <Button variant="contained" color="secondary" onClick={() => setIsModalOpen(false)}>
-                            Cancel
-                        </Button>
+                            <TextField
+                                name="contact"
+                                label="Contact"
+                                value={staff.contact}
+                                onChange={handleInputChange}
+                                sx={{ width: '100%' }}
+                            />
+                            <TextField
+                                name="salary"
+                                label="Salary"
+                                value={staff.salary}
+                                onChange={handleInputChange}
+                                sx={{ width: '100%' }}
+                            />
+
+                            <Button type="submit" variant="contained" color="primary">
+                                {editingStaff ? 'Update' : 'Create'}
+                            </Button>
+                        </Box>
                     </form>
-                </Paper>
+                </Box>
             </Modal>
             <TableContainer component={Paper}>
                 <Table>
@@ -269,7 +282,6 @@ const Staff = ({ open }) => {
                 labelRowsPerPage="Rows per page:"
                 labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
                 sx={{ mt: 2 }}
-                hideFooter
                 size="small"
                 color="primary"
                 label="Table Pagination"
@@ -280,9 +292,9 @@ const Staff = ({ open }) => {
                 backIconButtonProps={{ color: 'primary' }}
                 nextIconButtonProps={{ color: 'primary' }}
                 SelectProps={{ color: 'primary' }}
-                
+
             />
-        </Container>
+        </Box>
     );
 };
 

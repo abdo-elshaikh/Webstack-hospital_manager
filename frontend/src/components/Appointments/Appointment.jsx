@@ -1,65 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import {
     Container,
-    TableContainer,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
+    Typography,
     Button,
-    Modal,
-    Select,
-    MenuItem,
+    TextField,
+    Box,
     FormControl,
     InputLabel,
-    TextField,
+    Select,
+    MenuItem,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     Paper,
-    IconButton,
     TablePagination,
+    IconButton,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
 import { toast } from 'react-toastify';
-import {
-    getAppointments,
-    updateAppointment,
-    createAppointment,
-    deleteAppointment,
-    changeAppointmentStatus
-} from '../../services/appointmentService';
-import { getPatients } from '../../services/PatientService';
-import { getServicesByDepartment } from '../../services/priceService';
-import { getStaffByDepartment } from '../../services/staffService';
+import { Link, useNavigate } from 'react-router-dom';
+import { getAppointments, deleteAppointment, changeAppointmentStatus } from '../../services/appointmentService';
+import AppointmentForm from './AppointmentForm'; // Assume you have an AppointmentForm component
 import { getAllDepartments } from '../../services/departmentService';
-import { Link } from 'react-router-dom';
-import '../../styles/appointments.css';
 
-const Appointment = ({ open }) => {
+const Appointment = () => {
     const [appointments, setAppointments] = useState([]);
-    const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState('create');
-    const [selectedAppointment, setSelectedAppointment] = useState(null);
-    const [patients, setPatients] = useState([]);
-    const [services, setServices] = useState([]);
-    const [staff, setStaff] = useState([]);
     const [departments, setDepartments] = useState([]);
-
-    const [formData, setFormData] = useState({
-        patient: '',
-        department: '',
-        service: '',
-        staff: '',
-        date: '',
-        status: ''
-    });
-
-    // Pagination state
+    const [searchDate, setSearchDate] = useState('');
+    const [filterDepartment, setFilterDepartment] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [sortDirection, setSortDirection] = useState('asc');
+    const [sortColumn, setSortColumn] = useState('date');
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [showModal, setShowModal] = useState(false);
+    const [currentAppointment, setCurrentAppointment] = useState(null);
+    const [modalMode, setModalMode] = useState('create');
+    const [searchResults, setSearchResults] = useState([]);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadAppointments();
-        loadPatients();
         loadDepartments();
     }, []);
 
@@ -69,23 +58,43 @@ const Appointment = ({ open }) => {
             if (data.error) {
                 toast.error(data.error);
             } else {
-                setAppointments(data.appointments);
+                let filteredAppointments = data.appointments;
+
+                // Apply filters
+                if (searchDate) {
+                    filteredAppointments = filteredAppointments.filter(appointment =>
+                        new Date(appointment.date).toDateString() === new Date(searchDate).toDateString()
+                    );
+                }
+
+                if (filterDepartment) {
+                    filteredAppointments = filteredAppointments.filter(appointment =>
+                        appointment.department?._id === filterDepartment
+                    );
+                }
+
+                if (filterStatus) {
+                    filteredAppointments = filteredAppointments.filter(appointment =>
+                        appointment.status === filterStatus
+                    );
+                }
+
+                // Apply sorting
+                filteredAppointments = filteredAppointments.sort((a, b) => {
+                    if (sortColumn === 'date') {
+                        return sortDirection === 'asc'
+                            ? new Date(a.date) - new Date(b.date)
+                            : new Date(b.date) - new Date(a.date);
+                    }
+                    return 0;
+                });
+                console.log('filteredAppointments', filteredAppointments);
+                // Update state
+                setAppointments(filteredAppointments);
+                setSearchResults(filteredAppointments);
             }
         } catch (error) {
             toast.error(`Error loading appointments: ${error.message}`);
-        }
-    };
-
-    const loadPatients = async () => {
-        try {
-            const data = await getPatients();
-            if (data.error) {
-                toast.error(data.error);
-            } else {
-                setPatients(data.patients);
-            }
-        } catch (error) {
-            toast.error(`Error loading patients: ${error.message}`);
         }
     };
 
@@ -102,104 +111,12 @@ const Appointment = ({ open }) => {
         }
     };
 
-    const handleDepartmentChange = async (e) => {
-        const departmentId = e.target.value;
-        setFormData((prevData) => ({ ...prevData, department: departmentId }));
-
-        try {
-            const servicesData = await getServicesByDepartment(departmentId);
-            if (servicesData.services) {
-                setServices(servicesData.services);
-            } else {
-                toast.error(servicesData.message);
-            }
-
-            const staffData = await getStaffByDepartment(departmentId);
-            if (staffData.staff) {
-                const staffs = staffData.staff.map((s) => ({
-                    ...s,
-                    name: s.user.name,
-                }));
-                setStaff(staffs);
-            } else {
-                toast.error(staffData.message);
-            }
-        } catch (error) {
-            toast.error(`Error fetching services or staff: ${error.message}`);
-        }
+    const handleSort = (column) => {
+        const newDirection = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+        setSortColumn(column);
+        setSortDirection(newDirection);
     };
 
-    const handleModalOpen = (type, appointment) => {
-        setModalType(type);
-        setSelectedAppointment(appointment || null);
-        setShowModal(true);
-
-        if (type === 'update' && appointment) {
-            setFormData({
-                patient: appointment.patient,
-                department: appointment.department,
-                service: appointment.service,
-                staff: appointment.staff,
-                date: new Date(appointment.date).toISOString().slice(0, 16),
-                status: appointment.status
-            });
-        } else if (type === 'create') {
-            setFormData({
-                patient: '',
-                department: '',
-                service: '',
-                staff: '',
-                date: '',
-                status: ''
-            });
-        }
-    };
-
-    const handleModalClose = () => setShowModal(false);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (modalType === 'create') {
-                await createAppointment(formData);
-                toast.success('Appointment created successfully');
-            } else if (modalType === 'update' && selectedAppointment) {
-                await updateAppointment(selectedAppointment._id, formData);
-                toast.success('Appointment updated successfully');
-            }
-            loadAppointments();
-            handleModalClose();
-        } catch (error) {
-            toast.error('Error creating/updating appointment');
-        }
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await deleteAppointment(id);
-            toast.success('Appointment deleted successfully');
-            loadAppointments();
-        } catch (error) {
-            toast.error('Error deleting appointment');
-        }
-    };
-
-    const handleChangeStatus = async (id, status) => {
-        try {
-            await changeAppointmentStatus(id, status);
-            toast.success('Appointment status updated successfully');
-            loadAppointments();
-        } catch (error) {
-            toast.error('Error changing appointment status');
-        }
-    };
-
-    // Pagination handlers
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -209,30 +126,152 @@ const Appointment = ({ open }) => {
         setPage(0);
     };
 
+    const handleModalOpen = (mode, appointment = null) => {
+        setModalMode(mode);
+        setCurrentAppointment(appointment);
+        setShowModal(true);
+    };
+
+    const handleModalClose = () => {
+        setShowModal(false);
+        setCurrentAppointment(null);
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            const result = await deleteAppointment(id);
+            if (result.error) {
+                toast.error(result.error);
+            } else {
+                toast.success('Appointment deleted successfully');
+                loadAppointments();
+            }
+        } catch (error) {
+            toast.error(`Error deleting appointment: ${error.message}`);
+        }
+    };
+
+    const handleChangeStatus = async (id, status) => {
+        try {
+            const result = await changeAppointmentStatus(id, status);
+            if (result.error) {
+                toast.error(result.error);
+            } else {
+                toast.success('Appointment status updated successfully');
+                loadAppointments();
+            }
+        } catch (error) {
+            toast.error(`Error changing appointment status: ${error.message}`);
+        }
+    };
+
+    const handleSearch = () => {
+        if (searchDate || filterDepartment || filterStatus) {
+            
+            const filteredAppointments = appointments.filter(appointment => {
+                if (searchDate) {
+                    console.log('searchDate', new Date(searchDate).toLocaleDateString(), 'appointment.date', new Date(appointment.date).toLocaleDateString());
+                    return new Date(appointment.date).toDateString() === new Date(searchDate).toDateString();
+                }
+                if (filterDepartment) {
+                    return appointment.department?._id === filterDepartment;
+                }
+                if (filterStatus) {
+                    return appointment.status === filterStatus;
+                }
+                return true;
+            });
+            setSearchResults(filteredAppointments);
+        } else {
+            loadAppointments();
+        }
+    };
+
+    const handleViewAppointment = (appointment) => {
+        navigate('/admin/appointments/view', { state: { appointment } });
+    };
+
+
     return (
-        <Container >
-            <Button variant="contained" color="primary" onClick={() => handleModalOpen('create')}>
+        <Box component={Paper} p={2} sx={{ width: '100%', bgcolor: 'background.paper', }} >
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleModalOpen('create')}
+                sx={{ mb: 2 }}
+                disabled
+            >
                 Create Appointment
             </Button>
-            <div className="appointment-list mt-3">
-                <TableContainer >
-                    <Table size="small" >
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>#</TableCell>
-                                <TableCell>Patient</TableCell>
-                                <TableCell>Department</TableCell>
-                                <TableCell>Service</TableCell>
-                                <TableCell>Staff</TableCell>
-                                <TableCell>Date</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell>Action</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {appointments.length > 0 ? appointments
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((appointment, index) => (
+            {/* Search and Filters */}
+            <Box display='flex' justifyContent='space-between' alignItems='center' gap={2} mb={2} sx={{ width: '100%', mb: 2 }}>
+                <TextField
+                    label="Search by Date"
+                    type="date"
+                    value={searchDate}
+                    onChange={(e) => setSearchDate(e.target.value)}
+                    fullWidth
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                />
+                <FormControl fullWidth margin="normal">
+                    <InputLabel>Filter by Department</InputLabel>
+                    <Select
+                        value={filterDepartment}
+                        onChange={(e) => setFilterDepartment(e.target.value)}
+                    >
+                        <MenuItem value="">
+                            <em>All Departments</em>
+                        </MenuItem>
+                        {departments.map((department) => (
+                            <MenuItem key={department._id} value={department._id}>
+                                {department.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl fullWidth margin="normal">
+                    <InputLabel>Filter by Status</InputLabel>
+                    <Select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <MenuItem value="">
+                            <em>All Statuses</em>
+                        </MenuItem>
+                        <MenuItem value="pending">Pending</MenuItem>
+                        <MenuItem value="in progress">In Progress</MenuItem>
+                        <MenuItem value="completed">Completed</MenuItem>
+                        <MenuItem value="canceled">Canceled</MenuItem>
+                    </Select>
+                </FormControl>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSearch}
+                    sx={{ mb: 2 }}
+                >
+                    Search
+                </Button>
+            </Box>
+            <TableContainer component={Paper}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell onClick={() => handleSort('index')}>#</TableCell>
+                            <TableCell onClick={() => handleSort('patient')}>Patient</TableCell>
+                            <TableCell onClick={() => handleSort('department')}>Department</TableCell>
+                            <TableCell onClick={() => handleSort('service')}>Service</TableCell>
+                            <TableCell onClick={() => handleSort('staff')}>Staff</TableCell>
+                            <TableCell onClick={() => handleSort('date')}>Date</TableCell>
+                            <TableCell onClick={() => handleSort('status')}>Status</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {searchResults.length > 0 ? searchResults
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((appointment, index) => (
                                 <TableRow key={appointment._id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{appointment.patient?.name}</TableCell>
@@ -242,25 +281,21 @@ const Appointment = ({ open }) => {
                                     <TableCell>{new Date(appointment.date).toLocaleString()}</TableCell>
                                     <TableCell>{appointment.status}</TableCell>
                                     <TableCell>
-                                        <IconButton onClick={() => handleModalOpen('update', appointment)}>
-                                            <Edit />
-                                        </IconButton>
-                                        <IconButton onClick={() => handleDelete(appointment._id)}>
+                                        <IconButton sx={{ mr: 1 }} onClick={() => handleDelete(appointment._id)}>
                                             <Delete />
                                         </IconButton>
-                                        <IconButton onClick={() => handleChangeStatus(appointment._id, appointment.status)}>
+                                        <IconButton onClick={() => handleViewAppointment(appointment)}>
                                             <Visibility />
                                         </IconButton>
-                                        <Button variant="contained" component={Link} to={`/appointment/${appointment._id}`}>
-                                            View
-                                        </Button>
                                     </TableCell>
                                 </TableRow>
-                            )) : <TableRow><TableCell colSpan={7}>No appointments found</TableCell></TableRow>}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                {/* Pagination */}
+                            )) : (
+                            <TableRow>
+                                <TableCell colSpan={8}>No appointments found</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
                 <TablePagination
                     component="div"
                     count={appointments.length}
@@ -269,118 +304,24 @@ const Appointment = ({ open }) => {
                     rowsPerPage={rowsPerPage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
-            </div>
+            </TableContainer>
 
             {/* Modal for Create/Update Appointment */}
-            <Modal open={showModal} onClose={handleModalClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Paper className="modal-content">
-                    <h2>{modalType === 'create' ? 'Create Appointment' : 'Update Appointment'}</h2>
-                    <form onSubmit={handleSubmit}>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Patient</InputLabel>
-                            <Select
-                                name="patient"
-                                value={formData.patient}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <MenuItem value="">
-                                    <em>Select Patient</em>
-                                </MenuItem>
-                                {patients.map((patient) => (
-                                    <MenuItem key={patient._id} value={patient._id}>
-                                        {patient.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Department</InputLabel>
-                            <Select
-                                name="department"
-                                value={formData.department}
-                                onChange={handleDepartmentChange}
-                                required
-                            >
-                                <MenuItem value="">
-                                    <em>Select Department</em>
-                                </MenuItem>
-                                {departments.map((department) => (
-                                    <MenuItem key={department._id} value={department._id}>
-                                        {department.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Service</InputLabel>
-                            <Select
-                                name="service"
-                                value={formData.service}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <MenuItem value="">
-                                    <em>Select Service</em>
-                                </MenuItem>
-                                {services.map((service) => (
-                                    <MenuItem key={service._id} value={service._id}>
-                                        {service.service}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Staff</InputLabel>
-                            <Select
-                                name="staff"
-                                value={formData.staff}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <MenuItem value="">
-                                    <em>Select Staff</em>
-                                </MenuItem>
-                                {staff.map((staffMember) => (
-                                    <MenuItem key={staffMember._id} value={staffMember._id}>
-                                        {staffMember.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            label="Date"
-                            type="datetime-local"
-                            name="date"
-                            value={formData.date}
-                            onChange={handleInputChange}
-                            fullWidth
-                            margin="normal"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            required
-                        />
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel>Status</InputLabel>
-                            <Select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <MenuItem value="pending">Pending</MenuItem>
-                                <MenuItem value="completed">Completed</MenuItem>
-                                <MenuItem value="canceled">Canceled</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <Button variant="contained" color="primary" type="submit">
-                            {modalType === 'create' ? 'Create' : 'Update'}
-                        </Button>
-                    </form>
-                </Paper>
-            </Modal>
-        </Container>
+            <Dialog open={showModal} onClose={handleModalClose}>
+                <DialogTitle>{modalMode === 'create' ? 'Create Appointment' : 'Update Appointment'}</DialogTitle>
+                <DialogContent>
+                    <AppointmentForm
+                        mode={modalMode}
+                        appointment={currentAppointment}
+                        onClose={handleModalClose}
+                        onRefresh={loadAppointments}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleModalClose}>Cancel</Button>
+                </DialogActions>
+            </Dialog>
+        </Box >
     );
 };
 

@@ -4,7 +4,7 @@ import AboutUs from './AboutUs';
 import Gallery from './Gallery';
 import ContactUs from './ContactUs';
 import Location from './Location';
-import { Container, useTheme } from '@mui/material';
+import { Container, useTheme, Divider } from '@mui/material';
 import OnlineBooking from './OnlineBooking';
 
 const HomeContent = () => {
@@ -12,13 +12,11 @@ const HomeContent = () => {
     return (
         <>
             <HeroSection />
-            <Container sx={{ backgroundColor: theme.palette.background.paper }}>
-                <AboutUs />
-                <Gallery />
-                <OnlineBooking />
-                <Location />
-                <ContactUs />
-            </Container>
+            <OnlineBooking />
+            <AboutUs />
+            <Gallery />
+            <Location />
+            <ContactUs />
         </>
     );
 };

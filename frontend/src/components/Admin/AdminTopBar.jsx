@@ -1,9 +1,10 @@
 import { AppBar, Toolbar, IconButton, Typography, Button, Avatar, Menu, MenuItem, useTheme, useMediaQuery } from '@mui/material';
-import { Menu as MenuIcon, Notifications } from '@mui/icons-material';
+import { Menu as MenuIcon, Notifications, Message} from '@mui/icons-material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminTopBar = ({ user, handleLogout, open, setOpen }) => {
+    const ServerURL = 'http://localhost:5000';
     const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
 
@@ -34,10 +35,13 @@ const AdminTopBar = ({ user, handleLogout, open, setOpen }) => {
                     Admin Dashboard
                 </Typography>
                 <IconButton color="inherit">
+                    <Message />
+                </IconButton>
+                <IconButton color="inherit">
                     <Notifications />
                 </IconButton>
                 <Button color="inherit" onClick={handleMenuClick}>
-                    <Avatar alt={user?.name} src={user?.image ? 'http://127.0.0.1:5000/uploads/' + user.image : '/avatar.svg'} />
+                    <Avatar alt={user?.name} src={user?.image ? ServerURL + '/uploads/' + user?.image : '/avatar.svg'} />
                 </Button>
                 <Menu
                     anchorEl={anchorEl}

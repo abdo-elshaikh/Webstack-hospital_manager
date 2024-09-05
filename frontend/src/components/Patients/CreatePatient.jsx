@@ -48,8 +48,8 @@ const CreatePatient = ({ patient, setPatient, isEdit, setIsEdit, setPatientModal
     };
 
     const createNewPatient = (data) => {
-        data.create_by = patient.create_by;
-        data.code = patient.code;
+        data.create_by = patient?.create_by;
+        data.code = patient?.code;
         createPatient(data)
             .then(response => {
                 if (response.error) {
@@ -67,9 +67,9 @@ const CreatePatient = ({ patient, setPatient, isEdit, setIsEdit, setPatientModal
     };
 
     const updateExistingPatient = (data) => {
-        data.code = patient.code;
-        data.create_by = patient.create_by;
-        updatePatient(patient._id, data)
+        data.code = patient?.code;
+        data.create_by = patient?.create_by;
+        updatePatient(patient?._id, data)
             .then(response => {
                 if (response.error) {
                     toast.error(response.error);

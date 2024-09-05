@@ -3,7 +3,7 @@ import axios from 'axios';
 const URL = 'http://localhost:5000/api/appointments';
 
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
         return {
             Authorization: `Bearer ${token}`,
@@ -68,6 +68,7 @@ const changeAppointmentStatus = async (id, status, update_by) => {
 }
 
 const getAppointmentsByPatient = async (patientId) => {
+    console.log('patientId', patientId);
     try {
         const response = await axios.get(`${URL}/patient/${patientId}`, { headers: getHeaders() });
         return response.data;

@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Drawer, AppBar, Box, Container, IconButton, MenuItem, Toolbar, Button, Avatar, Tooltip, useTheme, useMediaQuery, Divider, Menu, Typography } from '@mui/material';
-import { Menu as MenuIcon, LocalHospital, Settings, Logout, Login, AccountCircle, AdminPanelSettings, PersonAdd } from '@mui/icons-material';
+import useAuth from '../contexts/useAuth';
+import { toast } from 'react-toastify';
+import {
+    Drawer, AppBar, Box, Container, IconButton, MenuItem, Toolbar, Button,
+    Avatar, Tooltip, Divider, Menu, Typography, useTheme, useMediaQuery
+} from '@mui/material';
+import {
+    Menu as MenuIcon, LocalHospital, Settings, Logout, Login,
+    AccountCircle, AdminPanelSettings, PersonAdd, Phone, Email, LocationOn,
+    Facebook, Twitter, Instagram
+} from '@mui/icons-material';
 
 const Header = () => {
     const { user, handleLogout } = useAuth();
@@ -23,10 +31,12 @@ const Header = () => {
     };
 
     const handleLogOut = () => {
-        handleLogout();
-        handleCloseUserMenu();
-        setDrawerOpen(false);
-        navigate('/login');
+        if (handleLogout()) {
+            toast.success('Logged out successfully');
+            handleCloseUserMenu();
+            setDrawerOpen(false);
+            navigate('/auth/login');
+        }
     };
 
     const handleImageView = () => {
@@ -61,14 +71,19 @@ const Header = () => {
     return (
         <>
             {/* Fixed Header */}
-            <AppBar position={isHeaderFixed ? 'fixed' : 'static'} color="default" elevation={0} sx={{
-                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                top: 0,
-                width: '100%',
-                zIndex: (theme) => theme.zIndex.drawer + 3,
-            }}>
-                <Container maxWidth="lg">
-                    <Toolbar sx={{ justifyContent: 'space-between' }}>
+            <AppBar
+                position={isHeaderFixed ? 'fixed' : 'static'}
+                color="primary"
+                sx={{
+                    backgroundColor: '#003366', // Deep blue color
+                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                    top: 0,
+                    width: '100%',
+                    zIndex: (theme) => theme.zIndex.drawer + 3,
+                }}
+            >
+                <Container maxWidth="xl">
+                    <Toolbar sx={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center' }}>
                         {/* Mobile View */}
                         <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
                             <IconButton
@@ -79,7 +94,7 @@ const Header = () => {
                                 onClick={toggleDrawer}
                                 color="inherit"
                             >
-                                <MenuIcon />
+                                <MenuIcon sx={{ color: '#ffffff' }} />
                             </IconButton>
                             <Drawer
                                 anchor="left"
@@ -88,7 +103,7 @@ const Header = () => {
                             >
                                 <Toolbar sx={{ justifyContent: 'flex-end' }}>
                                     <IconButton onClick={toggleDrawer}>
-                                        <MenuIcon />
+                                        <MenuIcon sx={{ color: '#003366' }} />
                                     </IconButton>
                                 </Toolbar>
                                 <Box
@@ -96,38 +111,71 @@ const Header = () => {
                                     sx={{ p: 2 }}
                                     display="flex"
                                     flexDirection="column"
-                                    justifyContent="center"
                                     alignItems="flex-start"
                                     onClick={toggleDrawer}
                                     onKeyDown={toggleDrawer}
                                 >
-                                    <Button component={Link} to="/" color="inherit">Home</Button>
-                                    <Button component={Link} to="/about" color="inherit">About Us</Button>
-                                    <Button component={Link} to="/departments" color="inherit">Departments</Button>
-                                    <Button component={Link} to="/facilities" color="inherit">Facilities</Button>
-                                    <Button component={Link} to="/appointments" color="inherit">Appointments</Button>
-                                    <Button component={Link} to="/contact" color="inherit">Contact</Button>
+                                    <Button component={Link} to="/" color="inherit" sx={{ color: '#003366' }}>Home</Button>
+                                    <Button component={Link} to="/about-us" color="inherit" sx={{ color: '#003366' }}>About Us</Button>
+                                    <Button component={Link} to="/departments" color="inherit" sx={{ color: '#003366' }}>Departments</Button>
+                                    <Button component={Link} to="/facilities" color="inherit" sx={{ color: '#003366' }}>Facilities</Button>
+                                    <Button component={Link} to="/appointments" color="inherit" sx={{ color: '#003366' }}>Appointments</Button>
+                                    <Button component={Link} to="/contact-us" color="inherit" sx={{ color: '#003366' }}>Contact</Button>
                                 </Box>
                             </Drawer>
                         </Box>
+
                         {/* Desktop View */}
-                        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                            <Button component={Link} to="/" color="inherit">Home</Button>
-                            <Button component={Link} to="/about" color="inherit">About Us</Button>
-                            <Button component={Link} to="/departments" color="inherit">Departments</Button>
-                            <Button component={Link} to="/facilities" color="inherit">Facilities</Button>
-                            <Button component={Link} to="/appointments" color="inherit">Appointments</Button>
-                            <Button component={Link} to="/contact" color="inherit">Contact</Button>
+                        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+                            <Button component={Link} to="/" color="inherit" sx={{ color: '#ffffff', '&:hover': { color: '#ffcc00' } }}>Home</Button>
+                            <Button component={Link} to="/about-us" color="inherit" sx={{ color: '#ffffff', '&:hover': { color: '#ffcc00' } }}>About Us</Button>
+                            <Button component={Link} to="/departments" color="inherit" sx={{ color: '#ffffff', '&:hover': { color: '#ffcc00' } }}>Departments</Button>
+                            <Button component={Link} to="/facilities" color="inherit" sx={{ color: '#ffffff', '&:hover': { color: '#ffcc00' } }}>Facilities</Button>
+                            <Button component={Link} to="/appointments" color="inherit" sx={{ color: '#ffffff', '&:hover': { color: '#ffcc00' } }}>Appointments</Button>
+                            <Button component={Link} to="/contact-us" color="inherit" sx={{ color: '#ffffff', '&:hover': { color: '#ffcc00' } }}>Contact</Button>
                         </Box>
 
-                        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }} />
                         {/* User Profile */}
-                        <Box sx={{ flexGrow: 0 }}>
+                        <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center' }}>
+                            {/* Contact Information (Mobile and Desktop) */}
+                            {/* <Box sx={{
+                                display: { xs: 'none', md: 'flex' },
+                                alignItems: 'center',
+                                gap: 2
+                            }}>
+                                <Tooltip title="Cairo, Egypt">
+                                    <IconButton color="inherit">
+                                        <LocationOn sx={{ color: '#ffcc00' }} />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="(202) 25318585 - 24/7 Support">
+                                    <IconButton color="inherit">
+                                        <Phone sx={{ color: '#ffcc00' }} />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="info@elnadahospital.com - Email Us">
+                                    <IconButton color="inherit">
+                                        <Email sx={{ color: '#ffcc00' }} />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Follow Us">
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <IconButton component="a" href="https://www.facebook.com" target="_blank" sx={{ color: '#3b5998' }}>
+                                            <Facebook />
+                                        </IconButton>
+                                        <IconButton component="a" href="https://www.twitter.com" target="_blank" sx={{ color: '#00acee' }}>
+                                            <Twitter />
+                                        </IconButton>
+                                        <IconButton component="a" href="https://www.instagram.com" target="_blank" sx={{ color: '#e1306c' }}>
+                                            <Instagram />
+                                        </IconButton>
+                                    </Box>
+                                </Tooltip>
+                            </Box> */}
+
                             <Tooltip title="Open settings">
                                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                    <Avatar alt="User Avatar"
-                                        src={handleImageView()}
-                                    />
+                                    <Avatar alt="User Avatar" src={handleImageView()} />
                                 </IconButton>
                             </Tooltip>
                             <Menu
@@ -148,7 +196,7 @@ const Header = () => {
                             >
                                 {user ?
                                     <div>
-                                        <MenuItem key="profile" onClick={() => handleClickMenu('/profile')}>
+                                        <MenuItem key="profile" onClick={() => handleClickMenu('/home/profile')}>
                                             <AccountCircle />
                                             <Typography textAlign="center">
                                                 Profile
@@ -162,7 +210,6 @@ const Header = () => {
                                                     Admin
                                                 </Typography>
                                             </MenuItem>
-
                                         }
                                         {user.role === 'staff' || user.role === 'admin' &&
                                             <MenuItem key="staff" onClick={() => handleClickMenu('/staff')}>
@@ -201,8 +248,7 @@ const Header = () => {
                     </Toolbar>
                 </Container>
             </AppBar>
-            {/* Toolbar */}
-            <Toolbar />
+          
         </>
     );
 };

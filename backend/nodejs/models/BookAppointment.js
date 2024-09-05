@@ -28,6 +28,11 @@ const bookAppointmentSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    gender: {
+        type: String,
+        enum: ['male', 'female'],
+        required: true
+    },
     address: {
         type: String,
         required: false
@@ -40,6 +45,10 @@ const bookAppointmentSchema = new mongoose.Schema({
         type: String,
         enum: ['wait', 'accepted', 'rejected'],
         default: 'wait'
+    },
+    image: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true

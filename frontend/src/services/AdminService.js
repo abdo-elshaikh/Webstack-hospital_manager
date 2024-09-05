@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api/admin';
 
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
         return {
             Authorization: `Bearer ${token}`,

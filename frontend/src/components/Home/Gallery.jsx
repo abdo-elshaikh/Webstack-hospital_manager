@@ -1,71 +1,81 @@
-import React from 'react';
-import { Grid, Container, Typography, Card, CardMedia, CardContent } from '@mui/material';
+import React from "react";
+import Slider from "react-slick";
+import { Box, Typography, Paper, Divider } from "@mui/material";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import '../../styles/home.css';
 
-const galleryImages = [
-    {
-        src: 'https://picsum.photos/800/600?random=1',
-        title: 'Healthcare Facility',
-        description: 'State-of-the-art healthcare facility with modern amenities.'
-    },
-    {
-        src: 'https://picsum.photos/800/600?random=2',
-        title: 'Advanced Technology',
-        description: 'Equipped with the latest medical technology for accurate diagnoses.'
-    },
-    {
-        src: 'https://picsum.photos/800/600?random=3',
-        title: 'Compassionate Care',
-        description: 'Our team is dedicated to providing compassionate care to all patients.'
-    },
-    {
-        src: 'https://picsum.photos/800/600?random=4',
-        title: 'Experienced Staff',
-        description: 'Our experienced staff is here to support you every step of the way.'
-    },
-    {
-        src: 'https://picsum.photos/800/600?random=5',
-        title: 'Patient Rooms',
-        description: 'Comfortable and private patient rooms designed for recovery.'
-    },
-    {
-        src: 'https://picsum.photos/800/600?random=6',
-        title: 'Community Outreach',
-        description: 'We actively engage with the community through various outreach programs.'
-    }
+
+const images = [
+    '/images/slider1.jpg',
+    '/images/slider2.jpg',
+    '/images/slider3.jpg',
+    '/images/slider1.jpg',
+    '/images/slider2.jpg',
+    '/images/slider3.jpg',
 ];
+
+const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 3,
+    initialSlide: 0,
+    responsive: [
+        {
+            breakpoint: 1024,
+            settings: {
+                slidesToShow: 3,
+                slidesToScroll: 3,
+                infinite: true,
+                dots: true
+            }
+        },
+        {
+            breakpoint: 600,
+            settings: {
+                slidesToShow: 2,
+                slidesToScroll: 2,
+                initialSlide: 2
+            }
+        },
+        {
+            breakpoint: 480,
+            settings: {
+                slidesToShow: 1,
+                slidesToScroll: 1
+            }
+        }
+    ]
+};
 
 const Gallery = () => {
     return (
-        <Container maxWidth="lg" sx={{ my: 5 }}>
-            <Typography variant="h4" component="h2" textAlign="center" gutterBottom>
-                Gallery
-            </Typography>
-            <Typography variant="subtitle1" color="textSecondary" textAlign="center" mb={4}>
-                Explore our facilities and services through our gallery.
-            </Typography>
-            <Grid container spacing={4}>
-                {galleryImages.map((image, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Card>
-                            <CardMedia
-                                component="img"
-                                height="200"
-                                image={image.src}
-                                alt={image.title}
-                            />
-                            <CardContent>
-                                <Typography variant="h6" component="h3" gutterBottom>
-                                    {image.title}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    {image.description}
-                                </Typography>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
-        </Container>
+        <Box id="gallery" sx={{ backgroundColor: '#f5f5f5' }}>
+            <Box sx={{ maxWidth: '80%', margin: '0 auto', padding: '40px 0', textAlign: 'center' }}>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Our Gallery
+                </Typography>
+                <Typography variant="body1" align="center" gutterBottom>
+                    Show case our gallery of images here and enjoy
+                </Typography>
+                <Divider sx={{ margin: '20px 0' }} />
+                <Slider {...settings}>
+                    {images.map((img, index) => (
+                        <Box key={index} sx={{ px: 2 }}>
+                            <Paper elevation={3} sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+                                <img
+                                    src={img}
+                                    alt={`Gallery image ${index + 1}`}
+                                    style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+                                />
+                            </Paper>
+                        </Box>
+                    ))}
+                </Slider>
+            </Box>
+        </Box>
     );
 };
 

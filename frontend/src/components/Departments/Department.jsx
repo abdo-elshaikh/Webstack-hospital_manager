@@ -103,10 +103,13 @@ const Department = ({ open }) => {
     };
 
     return (
-        <Container >
-            <Toolbar>
+        <Box component={Paper} sx={{ p: 2, boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
+            <Toolbar 
+                sx={{ border: '1px solid #e0e0e0', mb: 2, borderRadius: 1 }}
+                bgcolor="background.default"
+            >
                 <Button
-                    variant="contained"
+                    variant="outlined"
                     startIcon={<Add />}
                     onClick={() => {
                         setDepartment({ name: '', description: '' });
@@ -117,7 +120,8 @@ const Department = ({ open }) => {
                     Add Department
                 </Button>
             </Toolbar>
-            <TableContainer>
+            <TableContainer
+            >
                 <Table size="small">
                     <TableHead>
                         <TableRow>
@@ -134,7 +138,7 @@ const Department = ({ open }) => {
                                 <TableCell>{department.name}</TableCell>
                                 <TableCell>{department.description}</TableCell>
                                 <TableCell>
-                                    <IconButton onClick={() => handleEdit(department._id)} color="primary">
+                                    <IconButton sx={{ mr: 1 }} onClick={() => handleEdit(department._id)} color="primary">
                                         <Edit />
                                     </IconButton>
                                     <IconButton onClick={() => handleDelete(department._id)} color="secondary">
@@ -146,13 +150,17 @@ const Department = ({ open }) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            {/* pagination component */}
             <Pagination
                 count={Math.ceil(departments.length / departmentsPerPage)}
                 page={currentPage}
                 onChange={handlePageChange}
                 color="primary"
                 sx={{ mt: 2 }}
+                size="small"
+
             />
+            {/* Modal for creating and editing departments */}
             <Modal
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -195,7 +203,7 @@ const Department = ({ open }) => {
                     </Box>
                 </Paper>
             </Modal>
-        </Container>
+        </Box>
     );
 };
 

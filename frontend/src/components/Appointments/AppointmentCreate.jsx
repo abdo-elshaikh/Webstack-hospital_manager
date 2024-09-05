@@ -5,45 +5,56 @@ import { createAppointment } from '../../services/appointmentService';
 import { getServicesByDepartment, getServicePriceByType } from '../../services/priceService';
 import { getStaffByDepartment } from '../../services/staffService';
 import { getAllDepartments } from '../../services/departmentService';
-import { TextField, MenuItem, Button, Box, Typography, Divider, InputAdornment, Grid } from '@mui/material';
+import {
+    TextField, MenuItem, Button, Box, Typography, Divider,
+    InputAdornment, Grid
+} from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDollarSign, faNotesMedical, faCalendar, faUserMd, faStethoscope, faUser } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuth from '../../contexts/useAuth';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import '../../styles/appointments.css';
+
+const schema = yup.object().shape({
+    department: yup.string().required('Department is required'),
+    service: yup.string().required('Service is required'),
+    staff: yup.string().required('Staff is required'),
+    serviceType: yup.string().required('Service type is required'),
+    date: yup.date().required('Date is required'),
+    reason: yup.string().required('Reason is required'),
+    price: yup.number().required('Price is required'),
+    discount: yup.number().required('Discount is required').default(0),
+    discountReason: yup.string().when('discount', {
+        is: 0,
+        then: (schema) => schema.default(''),
+        otherwise: (schema) => schema.default(0),
+    }),
+    paid: yup.number().required('Paid is required'),
+    rest: yup.number().required('Rest is required'),
+    total: yup.number().required('Total is required'),
+});
+
 
 const AppointmentCreate = ({ patient, setIsModalOpen }) => {
     const { user } = useAuth();
-    const { register, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm({
-        defaultValues: {
-            patient: patient?.id || '',
-            department: '',
-            service: '',
-            staff: '',
-            serviceType: '',
-            date: new Date(),
-            reason: '',
-            discountReason: '',
-            status: 'pending',
-            price: 0,
-            discount: 0,
-            paid: 0,
-            rest: 0,
-            total: 0,
-            createdBy: user._id,
-        }
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+        resolver: yupResolver(schema),
     });
+
     const [departments, setDepartments] = useState([]);
     const [services, setServices] = useState([]);
     const [staff, setStaff] = useState([]);
     const [servicePrice, setServicePrice] = useState([]);
     const [isOtherDiscount, setIsOtherDiscount] = useState(false);
-    const [otherDiscount, setOtherDiscount] = useState('');
+    const [discountType, setDiscountType] = useState("");
 
-    // const serviceTypes = ['cash', 'insurance', 'contract'];
+    const serviceTypes = ['cash', 'insurance', 'contract'];
     const discounts = ['10%', '20%', '25%', '30%', '50%', '75%', '100%', 'other'];
 
     useEffect(() => {
         fetchDepartments();
+        calculateServiceAmount();
     }, []);
 
     const fetchDepartments = async () => {
@@ -68,15 +79,16 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
         }
     };
 
-    const handleServiceChange = async (e) => {
+    const handleServiceChange = (e) => {
         const serviceId = e.target.value;
         setValue('service', serviceId);
         const service = services.find(service => service._id === serviceId);
         setServicePrice(service?.prices || []);
         if (service && service.prices.length > 0) {
-            setValue('serviceType', service.prices[0].type);
-            setValue('price', service.prices[0].price);
-            calculateServiceAmount();
+            const price = Number(service.prices[0].price);
+            setValue('price', price);
+            setValue('serviceType', 'cash');
+            calculateServiceAmount(price, 0, 0);
         }
     };
 
@@ -87,178 +99,383 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
         const priceInfo = service?.prices.find(price => price.type === type);
         if (priceInfo) {
             setValue('price', priceInfo.price);
-            calculateServiceAmount();
+            calculateServiceAmount(priceInfo.price, 0, 0);
         }
     };
 
-    const handleDiscountChange = (e) => {
+    const handleDiscountTypeChange = (e) => {
         const discountValue = e.target.value;
         if (discountValue === 'other' && !isOtherDiscount) {
             setIsOtherDiscount(true);
-            // toast.info('add custom discount');
         } else {
             setIsOtherDiscount(false);
             const discount = (Number(discountValue.replace('%', '')) / 100) * watch('price');
-            setValue('discount', discount);
-            setOtherDiscount(discount);
-            calculateServiceAmount();
+            console.log('price', watch('price'), 'paid', watch('paid'), 'discount', discount);
+            calculateServiceAmount(watch('price'), discount, 0);
         }
     };
 
     const handleOtherDiscountChange = (e) => {
         const discountValue = e.target.value;
-        setOtherDiscount(discountValue);
-        setValue('discount', discountValue);
-        calculateServiceAmount();
+        console.log('discountValue', discountValue, 'price', watch('price'));
+        if (discountValue > watch('price')) {
+            toast.error('Discount value cannot be greater than price.');
+            setValue('discount', watch('price'));
+            calculateServiceAmount(watch('price'), 0, watch('paid'));
+            return;
+        }
+        calculateServiceAmount(watch('price'), discountValue, 0);
     };
 
     const handlePaidChange = (e) => {
         const paidValue = e.target.value;
-        setValue('paid', paidValue);
-        calculateServiceAmount();
+        if (paidValue > (watch('price') - watch('discount'))) {
+            toast.error('Paid value cannot be greater than price.');
+            setValue('paid', watch('price') - watch('discount'));
+            calculateServiceAmount(watch('price'), watch('discount'), watch('paid'));
+            return;
+        }
+        calculateServiceAmount(watch('price'), watch('discount'), paidValue);
     };
 
-    const calculateServiceAmount = () => {
-        const price = Number(watch('price'));
-        const discount = Number(watch('discount') || 0);
-        const paid = Number(watch('paid') || price - discount);
-        const rest = price - paid;
-        const total = rest + paid;
-        console.log({ 'price': price, 'discount': discount, 'paid': paid, 'rest': rest, 'total': total });
+    const calculateServiceAmount = (price, discount, paid) => {
+        if (!price) return;
+        const discountValue = discount - (discount % 10);
+        const paidValue = paid === 0 ? price - discountValue : paid;
+        const rest = Number(price) - Number(discountValue) - Number(paidValue);
+        const total = Number(paidValue) + Number(rest);
+        console.log('price', price, 'discount', discountValue, 'paid', paidValue, 'rest', rest, 'total', total);
+        setValue('discount', discountValue);
+        setValue('paid', paidValue);
         setValue('rest', rest);
-        setValue('paid', paid);
         setValue('total', total);
     };
-    // const fetchServiceAmount = () => {
-    //     const price = watch('price');
-    //     const discount = watch('discount') || 0;
-    //     const paid = watch('paid') ? Number(watch('paid')) : Number(price) - Number(discount);
-    //     const rest = Number(price) - Number(paid);
-    //     const total = Number(rest) - Number(discount);
-
-    //     setValue('rest', rest);
-    //     setValue('paid', paid);
-    //     setValue('total', total);
-    // };
 
     const onSubmit = async (data) => {
-        console.log(data);
         if (new Date(data.date) < new Date()) {
             toast.error('Please select a date in the future.');
             return;
         }
+        // data without discount type
+        console.log('data', data);
         try {
             const response = await createAppointment({ ...data, patient: patient?._id, create_by: user?._id });
-            console.log(response.appointment);
-            toast.success(`Appointment created successfully for ${patient.name}`);
-            setIsModalOpen(false);
+            if (response.error) {
+                toast.error(response.error);
+            } else {
+                toast.success('Appointment created successfully for ' + patient?.name + '.');
+                setIsModalOpen(false);
+            }
         } catch (error) {
-            toast.error('Error creating appointment.');
+            toast.error(error.message);
         }
     };
 
     const handleCancel = () => {
         setIsModalOpen(false);
-        reset({
-            service: '',
-            serviceType: '',
-            price: 0,
-            discount: 0,
-            paid: 0,
-            rest: 0,
-            total: 0,
-            staff: '',
-        });
     };
 
     return (
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1, px: 1 }}>
+        <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)} width={'100%'} >
             <Divider sx={{ mb: 2 }} />
-            <Grid container sx={{ border: '1px solid #ccc', borderRadius: '5px', px: 2 }} spacing={2}>
-                {/* Patient Input */}
+            <Grid container sx={{ border: '1px solid #ccc', px: 1, backgroundColor: '#f5f5f5', borderRadius: '5px' }} spacing={2}>
+                <Grid container item xs={8}>
+                    {/* Patient Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Patient"
+                            value={patient?.name}
+                            disabled
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faUser} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                    <Divider sx={{ mb: 1 }} />
+                    {/* Department Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Department"
+                            {...register('department', { required: 'Department is required' })}
+                            onChange={handleDepartmentChange}
+                            error={!!errors.department}
+                            helperText={errors.department?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faUserMd} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="" disabled>Select Department</MenuItem>
+                            {departments.map(department => (
+                                <MenuItem key={department._id} value={department._id}>
+                                    {department.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+
+                    {/* Service Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Service"
+                            {...register('service', { required: 'Service is required' })}
+                            onChange={handleServiceChange}
+                            error={!!errors.service}
+                            helperText={errors.service?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faStethoscope} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value={""} disabled>Select Service</MenuItem>
+                            {services.map(service => (
+                                <MenuItem key={service._id} value={service._id}>
+                                    {service.service}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+
+                    {/* Service Type Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Service Type"
+                            {...register('serviceType', { required: 'Service type is required' })}
+                            onChange={handleServiceTypeChange}
+                            error={!!errors.serviceType}
+                            helperText={errors.serviceType?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faNotesMedical} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="" disabled>Select Service Type</MenuItem>
+                            {serviceTypes.map((type) => (
+                                <MenuItem key={type} value={type}>
+                                    {type}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    {/* Staff Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Staff"
+                            {...register('staff', { required: 'Staff is required' })}
+                            error={!!errors.staff}
+                            helperText={errors.staff?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faUserMd} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="">Select Staff</MenuItem>
+                            {staff.map(staff => (
+                                <MenuItem key={staff._id} value={staff._id}>
+                                    {staff.user?.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    {/* Date Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Date"
+                            type="datetime-local"
+                            {...register('date', { required: 'Date is required' })}
+                            error={!!errors.date}
+                            helperText={errors.date?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faCalendar} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                    {/* Reason Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Discount Reason"
+                            {...register('discountReason', { required: 'Reason is required' })}
+                            error={!!errors.reason}
+                            helperText={errors.reason?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faNotesMedical} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container item xs={4} spacing={2}>
+                    {/* Price Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Price"
+                            type="number"
+                            {...register('price', { required: 'Price is required' })}
+                            error={!!errors.price}
+                            helperText={errors.price?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faDollarSign} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                    {/* Discount Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Discount Type"
+                            value={discountType}
+                            onChange={handleDiscountTypeChange}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faDollarSign} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="" disabled>Select Discount</MenuItem>
+                            {discounts.map((discount, index) => (
+                                <MenuItem key={index} value={discount}>
+                                    {discount}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+                    {/* Other Discount Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Other Discount"
+                            type="number"
+                            disabled={!isOtherDiscount}
+                            {...register('discount', { required: 'Discount is required' })}
+                            onChange={handleOtherDiscountChange}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faDollarSign} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                    {/* Paid Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Paid"
+                            type="number"
+                            {...register('paid', { required: 'Paid is required' })}
+                            error={!!errors.paid}
+                            helperText={errors.paid?.message}
+                            onChange={handlePaidChange}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faDollarSign} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                    {/* Rest Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Rest"
+                            type="number"
+                            {...register('rest')}
+                            error={!!errors.rest}
+                            helperText={errors.rest?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faDollarSign} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                    {/* Total Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Total"
+                            type="number"
+                            {...register('total', { required: 'Total is required' })}
+                            error={!!errors.total}
+                            helperText={errors.total?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FontAwesomeIcon icon={faDollarSign} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        />
+                    </Grid>
+                </Grid>
+                {/* Notes Input */}
                 <Grid item xs={12}>
                     <TextField
                         fullWidth
-                        label="Patient"
-                        value={patient.name}
-                        disabled
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faUser} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-                <Divider sx={{ mb: 1 }} />
-                {/* Department Input */}
-                <Grid item xs={12}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Department"
-                        {...register('department', { required: 'Department is required' })}
-                        onChange={handleDepartmentChange}
-                        error={!!errors.department}
-                        helperText={errors.department?.message}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faUserMd} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    >
-                        <MenuItem value="">Select Department</MenuItem>
-                        {departments.map(department => (
-                            <MenuItem key={department._id} value={department._id}>
-                                {department.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-
-                {/* Service Input */}
-                <Grid item xs={6}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Service"
-                        {...register('service', { required: 'Service is required' })}
-                        onChange={handleServiceChange}
-                        error={!!errors.service}
-                        helperText={errors.service?.message}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faStethoscope} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    >
-                        <MenuItem value="">Select Service</MenuItem>
-                        {services.map(service => (
-                            <MenuItem key={service._id} value={service._id}>
-                                {service.service}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-
-                {/* Service Type Input */}
-                <Grid item xs={6}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Service Type"
-                        {...register('serviceType', { required: 'Service type is required' })}
-                        onChange={handleServiceTypeChange}
-                        error={!!errors.serviceType}
-                        helperText={errors.serviceType?.message}
+                        label="Notes"
+                        multiline
+                        rows={4}
+                        {...register('reason', { required: 'Reason is required' })}
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
@@ -267,217 +484,20 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             ),
                         }}
                         sx={{ mb: 2 }}
-                    >
-                        <MenuItem value="">Select Service Type</MenuItem>
-                        {servicePrice.map((type, index) => (
-                            <MenuItem key={index} value={type.type}>
-                                {type.type}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-
-                {/* Price Input */}
-                <Grid item xs={4}>
-                    <TextField
-                        fullWidth
-                        label="Price"
-                        type="number"
-                        {...register('price')}
-                        InputLabelProps={{ shrink: true }}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        disabled
-                        sx={{ mb: 2 }}
                     />
-                </Grid>
-
-                {/* Discount Type Input */}
-                <Grid item xs={4}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Discount"
-                        {...register('discountType')}
-                        onChange={handleDiscountChange}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    >
-                        <MenuItem value="">Select Discount</MenuItem>
-                        {discounts.map((discount, index) => (
-                            <MenuItem key={index} value={discount}>
-                                {discount}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-
-                {/* Other Discount Input */}
-                <Grid item xs={4}>
-                    <TextField
-                        fullWidth
-                        label="Other Discount"
-                        type="number"
-                        value={otherDiscount}
-                        onChange={handleOtherDiscountChange}
-                        disabled={!isOtherDiscount}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-
-                {/* Discount Reason Input */}
-                <Grid item xs={12}>
-                    <TextField
-                        fullWidth
-                        label="Discount Reason"
-                        {...register('discountReason')}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-
-                {/* Paid Input */}
-                <Grid item xs={4}>
-                    <TextField
-                        fullWidth
-                        label="Paid"
-                        type="number"
-                        {...register('paid')}
-                        onChange={handlePaidChange}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-
-                {/* Rest Input */}
-                <Grid item xs={4}>
-                    <TextField
-                        fullWidth
-                        label="Rest"
-                        type="number"
-                        {...register('rest')}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        disabled
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-
-                {/* Total Input */}
-                <Grid item xs={4}>
-                    <TextField
-                        fullWidth
-                        label="Total"
-                        type="number"
-                        {...register('total')}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faDollarSign} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        disabled
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-
-                {/* Date Input */}
-                <Grid item xs={6}>
-                    <TextField
-                        fullWidth
-                        type="datetime-local"
-                        label="Date"
-                        {...register('date', { required: 'Date is required' })}
-                        error={!!errors.date}
-                        helperText={errors.date?.message}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faCalendar} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    />
-                </Grid>
-
-                {/* Staff Input */}
-                <Grid item xs={6}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Staff"
-                        {...register('staff')}
-                        error={!!errors.staff}
-                        helperText={errors.staff?.message}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faUserMd} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    >
-                        <MenuItem value="">Select Staff</MenuItem>
-                        {staff && staff?.map(staffMember => (
-                            <MenuItem key={staffMember._id} value={staffMember._id}>
-                                {staffMember.user?.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
                 </Grid>
             </Grid>
-
-            {/* <Divider sx={{ my: 2 }} /> */}
-            <Grid container spacing={2} marginTop={1}>
-                <Grid item xs={6}>
-                    <Button type="submit" variant="contained" color="primary" fullWidth>
-                        Create Appointment
-                    </Button>
-                </Grid>
-                <Grid item xs={6}>
-                    <Button type="button" variant="outlined" color="secondary" fullWidth onClick={handleCancel}>
-                        Cancel
-                    </Button>
-                </Grid>
-            </Grid>
+            {/* Buttons */}
+            <Box mt={2} display="flex" justifyContent="flex-end">
+                <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    sx={{ mr: 2, width: '100px' }}
+                >
+                    Save
+                </Button>
+            </Box>
         </Box>
     );
 };

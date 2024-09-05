@@ -1,4 +1,3 @@
-
 .home-container {
     padding: 0;
     margin-top: 80px;
@@ -13,7 +12,7 @@
 }
 
 .hero-content {
-    background-color:rgb(217, 216, 215);
+    background-color: rgb(217, 216, 215);
     padding: 30px 0;
     text-align: center;
 
@@ -50,7 +49,7 @@
 
 .gallery-img img {
     transition: transform 0.3s ease, filter 0.3s ease;
-    
+
 }
 
 .gallery-img img:hover {
@@ -155,7 +154,8 @@
         font-size: 1rem;
     }
 
-    .hero-section, .hero-section-alt {
+    .hero-section,
+    .hero-section-alt {
         padding: 80px 0;
     }
 }
@@ -175,7 +175,42 @@
         font-size: 1rem;
     }
 
-    .hero-section, .hero-section-alt {
+    .hero-section,
+    .hero-section-alt {
         padding: 60px 0;
     }
 }
+
+/* slider.css
+.slick-slide img {
+    border-radius: 10px;
+}
+
+.slick-prev,
+.slick-next {
+    z-index: 1;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 24px;
+}
+
+.slick-prev {
+    left: -10px;
+}
+
+.slick-next {
+    right: -10px;
+}
+
+.slick-dots li button:before {
+    font-size: 12px;
+    color: #fff;
+}
+
+.slick-dots li.slick-active button:before {
+    color: #000;
+} */

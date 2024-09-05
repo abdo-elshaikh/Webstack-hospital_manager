@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParse = require('cookie-parser');
-const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const session = require('express-session');
+const dotenv = require('dotenv');
+const departmentRoutes = require('./routes/departmentRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const departmentRoutes = require('./routes/departmentRoutes');
 const positionRoutes = require('./routes/positionRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const staffRoutes = require('./routes/staffRoutes');
@@ -14,12 +14,14 @@ const patientRoutes = require('./routes/patientRoutes')
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const authRoutes = require('./routes/authRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 const passport = require('passport');
 const path = require('path');
 require('./config/passport');
 
-const app = express();
 dotenv.config();
+const app = express();
 
 const crosOptions = {
     origin: "*",
@@ -56,7 +58,9 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/contacts', contactRoutes);
 app.use('/auth', authRoutes);
+app.use('/api/upload', uploadRoutes);
 
 
 const PORT = process.env.PORT || 5000;

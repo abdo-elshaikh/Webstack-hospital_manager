@@ -19,7 +19,7 @@ import { Visibility, VisibilityOff, Home, Google, Facebook } from '@mui/icons-ma
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuth from '../../contexts/useAuth';
 import * as yup from 'yup';
 import '../../styles/login.css';
 
@@ -39,7 +39,7 @@ const Login = () => {
   });
 
   const onSubmit = async (data) => {
-    toast.info('Logging in...', data);
+    // toast.info('Logging in...', data);
     try {
       const response = await login(data);
       if (response.error) {
@@ -94,12 +94,11 @@ const Login = () => {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
         padding: '2rem',
         width: '100%',
       }}
     >
-      <Card sx={{ maxWidth: 500, width: '100%', boxShadow: 3 }}>
+      <Card sx={{ maxWidth: 500, width: '100%', boxShadow: 3, borderRadius: 2, bgcolor: '#f5f5f5' }}>
         <CardContent>
           <Typography variant="h4" align="center" sx={{ mb: 2, fontWeight: 'bold' }}>
             Log In
@@ -149,12 +148,12 @@ const Login = () => {
               </Button>
             </Stack>
           </form>
-          <Typography align="center" sx={{ mt: 3, color: 'text.secondary' }}>
+          <Divider sx={{ my: 3 }} >
             or
-          </Typography>
-          <Box mt={2} display="flex" gap={2} justifyContent="center">
+          </Divider>
+          <Box mt={2} display="flex" gap={4} justifyContent="center">
             <Button
-              variant="contained"
+              variant="outlined"
               color="error"
               startIcon={<Google />}
               onClick={googleLogin}
@@ -163,7 +162,7 @@ const Login = () => {
               Google
             </Button>
             <Button
-              variant="contained"
+              variant="outlined"
               color="primary"
               startIcon={<Facebook />}
               onClick={facebookLogin}
@@ -172,25 +171,9 @@ const Login = () => {
               Facebook
             </Button>
           </Box>
-          <Box mt={2} display="flex" flexDirection="column" alignItems="center">
-            <Link onClick={() => navigate('/auth/forgot-password')} sx={{ cursor: 'pointer', mt: 1 }}>
+            <Link onClick={() => navigate('/auth/forgot-password')} sx={{ cursor: 'pointer', mt: 3, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
               Forgot password?
             </Link>
-            <Link
-              onClick={() => navigate('/')}
-              sx={{
-                cursor: 'pointer',
-                mt: 2,
-                display: 'inline-flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-                color: 'text.primary',
-              }}
-            >
-              <Home sx={{ mr: 1 }} />
-              Back to home
-            </Link>
-          </Box>
         </CardContent>
       </Card>
     </Box>

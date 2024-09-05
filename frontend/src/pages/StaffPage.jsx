@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Routes, Route } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { Drawer, IconButton, List, ListItem, ListItemText, Toolbar, AppBar, Typography, Box, useTheme, useMediaQuery, ListItemIcon } from "@mui/material";
-import { Menu as MenuIcon, Close as CloseIcon, GroupSharp, Home, BookOnline, Person, ExitToApp, CalendarMonth } from "@mui/icons-material";
+import { Drawer, IconButton, List, ListItem, ListItemText, Toolbar, AppBar, Typography, Box, useTheme, useMediaQuery, Divider, ListItemIcon } from "@mui/material";
+import { Menu as MenuIcon, Close as CloseIcon, GroupSharp, Home, BookOnline, Logout, Person, ExitToApp, CalendarMonth } from "@mui/icons-material";
 import StaffHome from "../components/Staff/StaffHome";
 import PatientAppointment from "../components/Appointments/PatientAppointment";
 import Profile from "../components/Profile";
-import AllPatients from "../components/Patients/AllPatients";
+import Patient from "../components/Patients/Patient";
 import BookAppointment from "../components/Appointments/BookAppointment";
-import AppointmentListPage from "../components/Appointments/AppointmentList";
+import Appointment from "../components/Appointments/Appointment";
 import NotFound from "../components/NotFound";
-import { useAuth } from "../contexts/AuthContext";
+import useAuth from "../contexts/useAuth";
+import StaffContent from "../components/Staff/StaffContent";
 import '../styles/staff.css';
 
 const drawerWidth = 240;
@@ -47,6 +48,7 @@ const Staff = () => {
 
     return (
         <Box sx={{ display: 'flex' }}>
+            {/* App Bar  */}
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#DDDDDD', color: '#000' }}>
                 <Toolbar>
                     <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer} sx={{ mr: 2 }}>
@@ -71,6 +73,8 @@ const Staff = () => {
                     </Box>
                 </Toolbar>
             </AppBar>
+
+            {/* Side Drawer  */}
             <Drawer
                 variant={isMobile || isTablet ? 'temporary' : 'persistent'}
                 open={isDrawerOpen}
@@ -103,6 +107,11 @@ const Staff = () => {
                         <ListItemIcon><Person /></ListItemIcon>
                         <ListItemText primary="Profile" />
                     </ListItem>
+                    <Divider />
+                    <ListItem button onClick={handleLogout}>
+                        <ListItemIcon><Logout /></ListItemIcon>
+                        <ListItemText primary="Logout" />
+                    </ListItem>
                     <ListItem button onClick={() => handleNavigation('/')}>
                         <ListItemIcon><ExitToApp /></ListItemIcon>
                         <ListItemText primary="Exit" />
@@ -114,14 +123,28 @@ const Staff = () => {
             >
                 <Toolbar />
                 <Routes>
-                    <Route path="/" element={<StaffHome />} />
-                    <Route path="/home" element={<StaffHome />} />
-                    <Route path="/patient/appointments/:patientId" element={<PatientAppointment />} />
-                    <Route path="/bookings" element={<BookAppointment />} />
-                    <Route path="/patients" element={<AllPatients />} />
-                    <Route path="/patients/:id" element={<PatientAppointment />} />
-                    <Route path="/appointments" element={<AppointmentListPage />} />
-                    <Route path="/profile" element={<Profile/>} />
+                    <Route path="/" element={<StaffContent title="Home" >
+                        <StaffHome />
+                    </StaffContent>} />
+                    <Route path="/home" element={<StaffContent title="Home" >
+                        <StaffHome />
+                    </StaffContent>} />
+                    <Route path="/patients" element={<StaffContent title="Patients" >
+                        <Patient />
+                    </StaffContent>} />
+                    <Route path="/appointments" element={<StaffContent title="Appointments" >
+                        <Appointment />
+                    </StaffContent>} />
+                    <Route path="/bookings" element={<StaffContent title="Online Bookings" >
+                        <BookAppointment />
+                    </StaffContent>} />
+                    <Route path="/profile" element={<StaffContent title="Profile" >
+                        <Profile />
+                    </StaffContent>} />
+                    <Route path="/patient/appointments/:id" element={<StaffContent title="Patient Appointments" >
+                        <PatientAppointment />
+                    </StaffContent>} />
+
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Box>

@@ -5,6 +5,7 @@ import { getAppointments, changeAppointmentStatus, getAppointmentsByPatient, del
 import { getPatients, deletePatient } from "../../services/PatientService";
 import AppointmentCreate from "../Appointments/AppointmentCreate";
 import CreatePatient from "../Patients/CreatePatient";
+import { TablePaginationComponent, PaginationComponent } from "../PaginationComponent";
 import {
     Box,
     Typography,
@@ -35,7 +36,7 @@ import {
     MenuItem
 } from "@mui/material";
 import { Close as CloseIcon, Edit, Delete, Add, NoteAdd, Print, Cancel, Search, RemoveRedEye, Check } from "@mui/icons-material";
-import { useAuth } from "../../contexts/AuthContext";
+import useAuth from "../../contexts/useAuth";
 import '../../styles/staff.css';
 
 const StaffHome = () => {
@@ -235,9 +236,7 @@ const StaffHome = () => {
         { label: 'search', value: 'search', title: 'Search Patients' },
     ];
 
-    const handleFilterChange = (event, newValue) => {
-        setFilter(newValue);
-    };
+
     // patients table view
     const patientTab = (patients) => {
         return (
@@ -252,16 +251,11 @@ const StaffHome = () => {
                         addAppointmentToPatient={addAppointmentToPatient}
                     />
                 </Box>
-                <Pagination
-                    count={Math.ceil(patients.length / 10)}
-                    page={page}
-                    onChange={handlePageChange}
-                    sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}
-                    color="primary"
-                    shape="rounded"
-                    showFirstButton
-                    showLastButton
-                />
+                {/* <TablePaginationComponent
+                    totalPages={10}
+                    currentPage={page}
+                    setCurrentPage={handlePageChange}
+                /> */}
             </Box>
         );
     };
@@ -277,16 +271,11 @@ const StaffHome = () => {
                         handleDeleteAppointment={handleDeleteAppointment}
                     />
                 </Box>
-                <Pagination
-                    count={Math.ceil(appointments.length / 10)}
-                    page={page}
-                    onChange={handlePageChange}
-                    sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}
-                    color="primary"
-                    shape="rounded"
-                    showFirstButton
-                    showLastButton
-                />
+                {/* <PaginationComponent
+                    totalPages={10}
+                    currentPage={page}
+                    setCurrentPage={handlePageChange}
+                /> */}
             </Box>
         );
     };
@@ -319,6 +308,7 @@ const StaffHome = () => {
                                 patients={patients}
                                 setSearchResult={setSearchResult}
                                 setTabValue={setTabValue}
+                                setFilter={(value) => setFilter(value)}
                             />
                         </Container>
                     </Box>
@@ -350,19 +340,42 @@ const StaffHome = () => {
                     {tabValue === 'today appointments' && appointmentTab(todayAppointments)}
                 </Box>
             </Box>
+
             {/* Modal for creating appointment */}
-            <Modal open={isModalOpen}
-                keepMounted disableEscapeKeyDown disableAutoFocus>
-                <Box sx={{ p: 3, maxWidth: 600, mx: "auto", mt: 5, backgroundColor: "background.paper", borderRadius: 1 }}>
+            <Dialog
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                fullWidth
+                maxWidth="md"
+                disableEscapeKeyDown
+                disableAutoFocus
+                PaperProps={{ sx: { borderRadius: 2 } }}
+            >
+                <DialogTitle
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                    <Typography variant="h6"> Patient - {patient?.name}</Typography>
                     <IconButton
-                        sx={{ position: 'absolute', top: 10, right: 10 }}
+                        edge="end"
+                        color="inherit"
                         onClick={() => setIsModalOpen(false)}
+                        aria-label="close"
+                        sx={{ position: 'absolute', top: 10, right: 15, color: 'black', backgroundColor: 'lightgray' }}
                     >
                         <CloseIcon />
                     </IconButton>
+                </DialogTitle>
+                <DialogContent
+                // dividers
+                >
                     <AppointmentCreate patient={patient} setIsModalOpen={setIsModalOpen} />
-                </Box>
-            </Modal>
+                </DialogContent>
+                {/* <DialogActions>
+                <Button onClick={() => setIsModalOpen(false)} color="primary">
+                    Close
+                </Button>
+            </DialogActions> */}
+            </Dialog>
 
             {/* Modal for creating patient */}
             <Modal
@@ -389,6 +402,7 @@ const StaffHome = () => {
                         patients={patients}
                         setSearchResult={setSearchResult}
                         setTabValue={setTabValue}
+                        setFilter={(value) => setFilter(value)}
 
                     />
                 </Box>
@@ -437,7 +451,7 @@ const PatientTable = ({ patients, setDialogPatient, handleEditPatient, setDialog
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {patients.length ? patients.map(patient => (
+                        {patients?.length > 0 ? patients.map(patient => (
                             <TableRow key={patient._id}>
                                 <TableCell>{patient.code}</TableCell>
                                 <TableCell>{patient.name}</TableCell>
@@ -474,20 +488,20 @@ const PatientTable = ({ patients, setDialogPatient, handleEditPatient, setDialog
                                         size="small"
                                         color="success"
                                         aria-label="view appointments"
-                                        onClick={() => navigate(`/staff/patient/appointments/${patient._id}`, { state: { patient } })}
+                                        onClick={() => navigate(`/staff/patient/appointments/${patient._id}`, {state: {patient} })}
                                     >
-                                        <RemoveRedEye />
-                                    </Fab>
-                                </TableCell>
+                                    <RemoveRedEye />
+                                </Fab>
+                            </TableCell>
                             </TableRow>
-                        )) : (
-                            <TableRow>
-                                <TableCell colSpan={7} align="center">No Patients Today</TableCell>
-                            </TableRow>
+                    )) : (
+                    <TableRow>
+                        <TableCell colSpan={7} align="center">No Patients Today</TableCell>
+                    </TableRow>
                         )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                </TableBody>
+            </Table>
+        </TableContainer >
         </>
 
     )

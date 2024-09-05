@@ -1,19 +1,11 @@
 import {
     getPatients,
-    createPatient,
-    updatePatient,
     deletePatient,
-    getPatientByName,
-    getPatientByCode,
-    getMaxCode
 } from '../../services/PatientService';
-import PatientAppointment from '../Appointments/PatientAppointment';
 import { useState, useEffect } from 'react';
-import {useNavigate} from 'react-router-dom';
-import { getCurrentUser } from '../../services/AuthService';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
-    Modal,
     Box,
     Button,
     Table,
@@ -31,61 +23,33 @@ import {
     Select,
     MenuItem,
     TextField,
-    Typography,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Checkbox
+    Checkbox,
+
 } from '@mui/material';
 import { Edit, Delete, Search, Add, CalendarToday } from '@mui/icons-material';
 import '../../styles/patient.css';
 
-const Patient = ({ currentUser, open }) => {
+const Patient = () => {
     const navigate = useNavigate();
     const [patients, setPatients] = useState([]);
-    const [maxCode, setMaxCode] = useState(0);
-    const emptyPatient = {
-        name: '',
-        code: 0,
-        age: 0,
-        address: '',
-        phone: '',
-        description: '',
-        create_by: currentUser,
-    };
-
-    const [patient, setPatient] = useState(emptyPatient);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEdit, setIsEdit] = useState(false);
-    const [search, setSearch] = useState('');
-    const [searchType, setSearchType] = useState('name');
     const [searchResult, setSearchResult] = useState([]);
     const [sortDirection, setSortDirection] = useState('asc');
     const [orderBy, setOrderBy] = useState('code');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [dateType, setDateType] = useState('');
+    const [searchElements, setSearchElements] = useState({
+        code: '',
+        name: '',
+        startDate: '',
+        endDate: '',
+    });
 
     useEffect(() => {
         fetchAllPatients();
     }, []);
 
-    useEffect(() => {
-        getMaxPatientCode();
-    }, [patients]);
-
-    const getMaxPatientCode = () => {
-        // getMaxCode().then(response => {
-        //     if (response.error) {
-        //         toast.error(response.error);
-        //         return;
-        //     }
-        //     setMaxCode(response.maxCode + 1);
-        // });
-        const maxCode = patients.map(patient => patient.code).reduce((acc, curr) => Math.max(acc, curr), 0);
-        setMaxCode(maxCode + 1);
-    };
 
     const fetchAllPatients = () => {
         setPatients([]);
@@ -103,77 +67,114 @@ const Patient = ({ currentUser, open }) => {
         setSearchResult([]);
     };
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
+   
+    const handleDateType = async () => {
 
-        if (!searchType || !search) {
-            toast.error('Please enter a search type and search term');
-            return;
+        let startDate = '';
+        let endDate = '';
+        console.log(dateType, 'date type');
+
+        // Adjust dates based on the selected date type
+        switch (dateType) {
+            case 'today':
+                startDate = endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'yesterday':
+                startDate = endDate = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0];
+                break;
+            case 'beforeYasterday':
+                startDate = endDate = new Date(new Date().setDate(new Date().getDate() - 2)).toISOString().split('T')[0];
+                break;
+            case 'thisWeek':
+                startDate = new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0];
+                endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'lastWeek':
+                startDate = new Date(new Date().setDate(new Date().getDate() - 14)).toISOString().split('T')[0];
+                endDate = new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0];
+                break;
+            case 'thisMonth':
+                startDate = new Date(new Date().setDate(1)).toISOString().split('T')[0];
+                endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'lastMonth':
+                startDate = new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString().split('T')[0];
+                endDate = new Date(new Date().setMonth(new Date().getMonth(), 0)).toISOString().split('T')[0];
+                break;
+            case 'thisYear':
+                startDate = new Date(new Date().setFullYear(new Date().getFullYear(), 0, 1)).toISOString().split('T')[0];
+                endDate = new Date().toISOString().split('T')[0];
+                break;
+            case 'lastYear':
+                startDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1, 0, 1)).toISOString().split('T')[0];
+                endDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1, 11, 31)).toISOString().split('T')[0];
+                break;
+            case 'dateRange':
+                startDate = new Date(searchElements.startDate).toISOString().split('T')[0];
+                endDate = new Date(searchElements.endDate).toISOString().split('T')[0];
+                break;
+            default:
+                startDate = '';
+                endDate = '';
         }
 
-        let searchResponse;
-        try {
-            if (searchType === 'name') {
-                searchResponse = await getPatientByName(search);
-            } else if (searchType === 'code') {
-                searchResponse = await getPatientByCode(search);
-            } else {
-                setSearchResult([]);
-                toast.error('Please enter a valid search type');
-                return;
-            }
-        } catch (error) {
-            toast.error('Something went wrong');
-            return;
-        }
-
-        if (searchResponse.error) {
-            toast.error(searchResponse.error);
-            return;
-        }
-
-        const { patients, patient } = searchResponse;
-        const searchResult = searchType === 'name' ? patients : [patient];
-        setSearchResult(searchResult);
-        toast.success(searchResponse.message);
+        // Set the search elements with the adjusted dates
+        return { startDate, endDate };
     };
+
+    const searchPatients = async (e) => {
+        // console.log(patients, 'patients');
+        e.preventDefault();
+        const { startDate, endDate } = await handleDateType();
+        searchElements.startDate = startDate;
+        searchElements.endDate = endDate;
+        console.log(searchElements, 'searchElements');
+
+        const filterByCode = patients.filter((patient) => patient.code === Number(searchElements.code));
+
+        const filterByDtae = patients.filter((patient) => {
+            if (!patient || !startDate || !endDate) {
+                return false;
+            }
+
+            const patientDate = new Date(patient.createdAt);
+            const searchStartDate = new Date(startDate);
+            const searchEndDate = new Date(endDate);
+
+            return patientDate >= searchStartDate && patientDate <= searchEndDate;
+        })
+
+        console.log(filterByDtae, 'filterByDtae');
+
+        if (filterByCode.length > 0) {
+            setSearchResult(filterByCode);
+            console.log(filterByCode, 'filterByCode');
+        } else if (filterByDtae.length > 0 && searchElements.name !== '') {
+            const searchByName = filterByDtae.filter((patient) => patient.name.toLowerCase().includes(searchElements.name.toLowerCase()));
+            setSearchResult(searchByName);
+            console.log(searchByName, 'searchByNameAndDate');
+        } else if (searchElements.name !== '') {
+            const searchByName = patients.filter((patient) => patient.name.toLowerCase().includes(searchElements.name.toLowerCase()));
+            setSearchResult(searchByName);
+            console.log(searchByName, 'searchByName');
+        } else if (filterByDtae.length > 0) {
+            setSearchResult(filterByDtae);
+            console.log(filterByDtae, 'filterByDtae');
+        } else {
+            toast.error('No results found for the search criteria');
+        }
+    };
+
 
     const handleSearchChange = (e) => {
-        setSearch(e.target.value);
+        const { name, value } = e.target;
+        setSearchElements({ ...searchElements, [name]: value });
     };
 
-    const handleSearchTypeChange = (e) => {
-        setSearchType(e.target.value);
+    const handleDateTypeChange = (e) => {
+        setDateType(e.target.value);
     };
 
-    const handleCreateOrEdit = async (e) => {
-        e.preventDefault();
-        if (!validPhoneNumber(patient.phone)) {
-            return;
-        }
-        console.log(patient);
-        if (isEdit) {
-            const response = await updatePatient(patient._id, patient);
-            if (response.error) {
-                toast.error(response.error);
-            } else {
-                const updatedPatients = patients.map((p) => (p._id === patient._id ? response.patient : p));
-                setPatients(updatedPatients);
-                toast.success(response.message);
-            }
-        } else {
-            const response = await createPatient({ ...patient, code: maxCode });
-            if (response.error) {
-                toast.error(response.error);
-            } else {
-                setPatients([...patients, response.patient]);
-                toast.success(response.message);
-            }
-        }
-        setPatient(emptyPatient);
-        setIsEdit(false);
-        setIsModalOpen(false);
-    };
 
     const handleDelete = (id) => {
         deletePatient(id).then((response) => {
@@ -194,29 +195,6 @@ const Patient = ({ currentUser, open }) => {
         setSelected([]);
     }
 
-    const handleModalClose = () => {
-        setPatient(emptyPatient);
-        setIsEdit(false);
-        setIsModalOpen(false);
-    };
-
-    const validPhoneNumber = (phoneNumber) => {
-        const regex = /^01[0125][0-9]{8}$/;
-        if (!regex.test(phoneNumber)) {
-            toast.error('Phone number must be a valid Egyptian phone number');
-            return false;
-        }
-        if (phoneNumber.length !== 11) {
-            toast.error('Phone number must be 11 digits');
-            return false;
-        }
-        return true;
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setPatient({ ...patient, [name]: value, create_by: currentUser ? currentUser : getCurrentUser() });
-    };
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -282,14 +260,13 @@ const Patient = ({ currentUser, open }) => {
 
     const sortedPatients = sortPatients(searchResult.length > 0 ? searchResult : patients);
 
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, sortedPatients.length - page * rowsPerPage);
 
     return (
         <Box component={Paper} p={2} sx={{ width: '100%', bgcolor: 'background.paper', }} >
-            <Box display='flex' justifyContent='space-between' alignItems='center' mb={2} sx={{ width: '100%' }}>
-                <Button variant='contained' startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
+            <Box display='flex' justifyContent='space-between' alignItems='center' mb={2} sx={{ width: '100%', mb: 2 }}>
+                {/* <Button variant='contained' startIcon={<Add />} onClick={() => setIsModalOpen(true)}>
                     Add Patient
-                </Button>
+                </Button> */}
                 <Button
                     variant='contained'
                     color='error'
@@ -300,35 +277,72 @@ const Patient = ({ currentUser, open }) => {
                     Delete Selected
                 </Button>
             </Box>
-            <Box  component={Paper} p={2} mb={2} bgcolor={'#f8f9fa'}>
-                <form onSubmit={handleSearch}>
-                    <Box alignContent={'center'} display='flex' justifyContent='space-between' alignItems='center'>
-                        <TextField
-                            label='Search'
-                            variant='outlined'
-                            value={search}
-                            onChange={handleSearchChange}
-                            style={{ flex: 2, marginRight: '1rem' }}
-                        />
-                        <FormControl style={{ flex: 1, marginRight: '1rem' }}>
-                            <InputLabel>Search By</InputLabel>
-                            <Select
-                                value={searchType}
-                                onChange={handleSearchTypeChange}
-                                label='Search By'
-                            >
-                                <MenuItem value='name'>Name</MenuItem>
-                                <MenuItem value='code'>Code</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <Button variant='contained' color='primary' type='submit' startIcon={<Search />}>
-                            Search
-                        </Button>
-                    </Box>
-                </form>
-            </Box>
+            <form onSubmit={searchPatients} style={{ width: '100%', border: '1px solid #ccc', marginBottom: '20px', padding: '10px' }} >
+                <Box alignContent={'center'} display='flex' justifyContent='space-between' alignItems='center' marginBottom={2}>
+                    <TextField
+                        label='By Name'
+                        variant='outlined'
+                        name='name'
+                        value={searchElements.name}
+                        onChange={handleSearchChange}
+                        style={{ flex: 1, marginRight: '1rem' }}
+                    />
+                    <TextField
+                        label='By Code'
+                        variant='outlined'
+                        name='code'
+                        value={searchElements.code}
+                        onChange={handleSearchChange}
+                        style={{ flex: 1, marginRight: '1rem' }}
+                    />
+                    <FormControl style={{ flex: 1, marginRight: '1rem' }}>
+                        <InputLabel>Search By Date</InputLabel>
+                        <Select
+                            value={dateType}
+                            onChange={handleDateTypeChange}
+                            label='Date Type'
+                        >
+                            <MenuItem value='today'>Today</MenuItem>
+                            <MenuItem value='yesterday'>Yesterday</MenuItem>
+                            <MenuItem value='beforeYasterday'>Before Yesterday</MenuItem>
+                            <MenuItem value='thisWeek'>This Week</MenuItem>
+                            <MenuItem value='lastWeek'>Last Week</MenuItem>
+                            <MenuItem value='thisMonth'>This Month</MenuItem>
+                            <MenuItem value='lastMonth'>Last Month</MenuItem>
+                            <MenuItem value='thisYear'>This Year</MenuItem>
+                            <MenuItem value='lastYear'>Last Year</MenuItem>
+                            <MenuItem value='dateRange'>Date Range</MenuItem>
+                        </Select>
+                    </FormControl>
+                    {dateType === 'dateRange' && (
+                        <>
+                            <TextField
+                                label='Start Date'
+                                type='date'
+                                variant='outlined'
+                                value={searchElements.startDate}
+                                onChange={(e) => setSearchElements({ ...searchElements, startDate: e.target.value })}
+                                InputLabelProps={{ shrink: true }}
+                                style={{ flex: 1, marginRight: '1rem' }}
+                            />
+                            <TextField
+                                label='End Date'
+                                type='date'
+                                variant='outlined'
+                                value={searchElements.endDate}
+                                onChange={(e) => setSearchElements({ ...searchElements, endDate: e.target.value })}
+                                InputLabelProps={{ shrink: true }}
+                                style={{ flex: 1, marginRight: '1rem' }}
+                            />
+                        </>
+                    )}
+                    <Button variant='contained' color='primary' type='submit' startIcon={<Search />}>
+                        Search
+                    </Button>
+                </Box>
+            </form>
             <TableContainer  >
-                <Table aria-label="simple table"  size='small' >
+                <Table aria-label="simple table" size='small' >
                     <TableHead>
                         <TableRow>
                             <TableCell padding='checkbox'>
@@ -360,6 +374,7 @@ const Patient = ({ currentUser, open }) => {
                             <TableCell>Address</TableCell>
                             <TableCell>Phone</TableCell>
                             <TableCell>Gender</TableCell>
+                            <TableCell>First Visit</TableCell>
                             <TableCell>Description</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
@@ -385,15 +400,14 @@ const Patient = ({ currentUser, open }) => {
                                     <TableCell>{patient.address}</TableCell>
                                     <TableCell>{patient.phone}</TableCell>
                                     <TableCell>{patient.gender}</TableCell>
+                                    <TableCell>{patient.createdAt?.slice(0, 10)}</TableCell>
                                     <TableCell>{patient.description}</TableCell>
                                     <TableCell align='right' sx={{ display: 'flex', gap: 1 }}>
-                                        <IconButton onClick={() => {
+                                        {/* <IconButton onClick={() => {
                                             setPatient(patient);
-                                            setIsEdit(true);
-                                            setIsModalOpen(true);
                                         }}>
                                             <Edit />
-                                        </IconButton>
+                                        </IconButton> */}
                                         <IconButton onClick={() => handleDelete(patient._id)}>
                                             <Delete />
                                         </IconButton>
@@ -404,102 +418,20 @@ const Patient = ({ currentUser, open }) => {
                                 </TableRow>
                             );
                         })}
-                        {/* {emptyRows > 0 && (
-                            <TableRow style={{ height: 53 * emptyRows }}>
-                                <TableCell colSpan={7} />
-                            </TableRow>
-                        )} */}
                     </TableBody>
                 </Table>
             </TableContainer>
             <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component='div'
+                rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                component={Box}
+                sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}
                 count={patients.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />
-            <Dialog open={isModalOpen} onClose={handleModalClose} fullWidth maxWidth='sm'>
-                <DialogTitle>{isEdit ? 'Edit Patient' : 'Add Patient'}</DialogTitle>
-                <DialogContent>
-                    <form>
-                        <TextField
-                            fullWidth
-                            name='name'
-                            label='Name'
-                            value={patient.name}
-                            onChange={handleInputChange}
-                            margin='dense'
-                        />
-                        <TextField
-                            fullWidth
-                            name='code'
-                            label='Code'
-                            value={patient.code || maxCode }
-                            onChange={handleInputChange}
-                            margin='dense'
-                            disabled
-                        />
-                        <TextField
-                            fullWidth
-                            name='age'
-                            label='Age'
-                            value={patient.age}
-                            onChange={handleInputChange}
-                            margin='dense'
-                        />
-                        <FormControl style={{ width: '100%' }} >
-                            <InputLabel>Gender</InputLabel>
-                            <Select
-                                name='gender'
-                                value={patient.gender}
-                                onChange={handleInputChange}
-                                label='Gender'
-                            >
-                                <MenuItem value='male'>Male</MenuItem>
-                                <MenuItem value='female'>Female</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            fullWidth
-                            name='address'
-                            label='Address'
-                            value={patient.address}
-                            onChange={handleInputChange}
-                            margin='dense'
-                        />
-                        <TextField
-                            fullWidth
-                            name='phone'
-                            label='Phone'
-                            value={patient.phone}
-                            onChange={handleInputChange}
-                            margin='dense'
 
-                        />
-                        <TextField
-                            fullWidth
-                            name='description'
-                            label='Description'
-                            value={patient.description}
-                            onChange={handleInputChange}
-                            margin='dense'
-                            multiline
-                            rows={3}
-                        />
-                    </form>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleModalClose} color='primary'>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleCreateOrEdit} color='primary'>
-                        {isEdit ? 'Update' : 'Create'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     );
 };

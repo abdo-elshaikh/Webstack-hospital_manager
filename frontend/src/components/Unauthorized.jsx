@@ -24,21 +24,19 @@ const Unauthorized = () => {
             bgcolor="#f5f5f5"
             p={3}
         >
-            <Typography variant="h1" component="h1" color="error" gutterBottom>
+            <Typography variant="h1" component="h1" color="primary" sx={{ fontWeight: 'bold' }} gutterBottom>
                 403
             </Typography>
-            <Typography variant="h4" component="h2" gutterBottom>
-                Unauthorized
+            <Typography variant="h4" component="h2" color="error" gutterBottom>
+                UNAUTHORIZED
             </Typography>
             <Typography variant="body1" color="textSecondary" paragraph>
                 You don't have permission to access this page.
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleGoHome}>
+            <Button variant="outlined" color="primary" onClick={handleGoHome}>
                 Go to Home
             </Button>
-            <Button variant="outlined" color="secondary" onClick={handleGoBack} sx={{ mt: 2 }}>
-                Go Back
-            </Button>
+           
         </Box>
     );
 };
