@@ -64,6 +64,7 @@ const Service = () => {
         fetchData();
     }, []);
 
+    // Fetch data
     const fetchData = async () => {
         setFetchLoading(true);
         try {
@@ -88,6 +89,7 @@ const Service = () => {
         }
     };
 
+    // Handle input change
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         if (['cash', 'insurance', 'contract'].includes(name)) {
@@ -103,6 +105,7 @@ const Service = () => {
         }
     };
 
+    // Create or update service
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
         const { departmentId, service: serviceName, prices } = service;
@@ -157,6 +160,7 @@ const Service = () => {
         }
     };
 
+    // Handle edit
     const handleEdit = (id) => {
         const serv = services.find((s) => s._id === id);
         const prices = {
@@ -169,6 +173,7 @@ const Service = () => {
         setIsInEdit(true);
     };
 
+    // Handle delete
     const handleDelete = async (id) => {
         try {
             const data = await deleteService(id);
@@ -184,6 +189,7 @@ const Service = () => {
         }
     };
 
+    // Create new department
     const createNewDepartment = async (name) => {
         const department = {
             name,
@@ -199,6 +205,7 @@ const Service = () => {
         }
     };
 
+    // Handle file upload
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -207,6 +214,7 @@ const Service = () => {
         }
     };
 
+    // Handle upload services 
     const handleUpload = async () => {
         if (!file) {
             toast.error('No file selected for upload');
@@ -302,12 +310,12 @@ const Service = () => {
         XLSX.writeFile(wb, 'services_data.xlsx');
     };
 
-
-
+    // Pagination component
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
+    // Pagination component
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);

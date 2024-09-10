@@ -106,7 +106,7 @@ const Footer = () => {
                     alignItems: 'center',
                     position: 'relative',
                     bottom: 0,
-                    backgroundColor: '#333',
+                    backgroundColor: 'rgba(0, 51, 102, 0.9)',
                     color: '#ccc',
                     py: 2,
                 }}

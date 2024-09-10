@@ -120,7 +120,7 @@ const Auth = () => {
           <Typography variant="h6" component="li" sx={{ color: '#0072ff', mt: 2 }}>
             Powered by :{' '}
             <a
-              href="https://www.linkedin.com/in/oluwatobi-akanni-0b9b5b1b7/"
+              href="https://www.linkedin.com/in/abdelrahman-mohamed-ahmed-56874a28a/"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: '#e36414' }}

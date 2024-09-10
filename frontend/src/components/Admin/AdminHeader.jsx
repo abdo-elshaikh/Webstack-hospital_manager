@@ -27,7 +27,7 @@ const AdminHeader = ({ currentUser, isSliderOpen, toggleSidebar, isMobile }) => 
                         id="basic-nav-dropdown"
                         className={isCollapsed ? 'collapse' : ''}
                     >
-                        <NavDropdown.Item as={Link} to="/admin/profile">
+                        <NavDropdown.Item as={Link} to="/profile">
                             <FontAwesomeIcon icon={faUser} />
                             {isSliderOpen && <span> Profile</span>}
                         </NavDropdown.Item>

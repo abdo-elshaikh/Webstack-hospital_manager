@@ -11,8 +11,13 @@ const userSchema = new mongoose.Schema({
             return !this.googleId && !this.facebookId
         }
     },
+    age: { type: Number, required: false },
+    genSalt: { type: String, required: false },
+    phone: { type: String, required: false },
+    address: { type: String, required: false },
     role: { type: String, default: 'user', required: true },
     isActive: { type: Boolean, required: true },
+    description: { type: String, required: false },
     image: { type: String, required: false, default: '' },
 }, {
     timestamps: true

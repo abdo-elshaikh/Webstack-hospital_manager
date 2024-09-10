@@ -86,7 +86,7 @@ const updateUser = async (id, formData) => {
         const response = await axios.put(`${API_BASE_URL}/current-user/${id}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${localStorage.getItem('token')}`
+                Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`,
             }
         });
         return response.data;
@@ -94,6 +94,5 @@ const updateUser = async (id, formData) => {
         return { error: error.response?.data?.message || error.message };
     }
 };
-
 
 export { register, login, logout, getCurrentUser, forgotPassword, resetPassword, updateUser, resetActivation };

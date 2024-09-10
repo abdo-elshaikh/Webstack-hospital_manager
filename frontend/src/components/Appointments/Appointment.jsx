@@ -21,14 +21,16 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle
+    DialogTitle,
+    Grid, Tooltip
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAppointments, deleteAppointment, changeAppointmentStatus } from '../../services/appointmentService';
-import AppointmentForm from './AppointmentForm'; // Assume you have an AppointmentForm component
+import AppointmentForm from './AppointmentForm';
 import { getAllDepartments } from '../../services/departmentService';
+import { Search, Restore, RestartAlt } from '@mui/icons-material';
 
 const Appointment = () => {
     const [appointments, setAppointments] = useState([]);
@@ -151,23 +153,9 @@ const Appointment = () => {
         }
     };
 
-    const handleChangeStatus = async (id, status) => {
-        try {
-            const result = await changeAppointmentStatus(id, status);
-            if (result.error) {
-                toast.error(result.error);
-            } else {
-                toast.success('Appointment status updated successfully');
-                loadAppointments();
-            }
-        } catch (error) {
-            toast.error(`Error changing appointment status: ${error.message}`);
-        }
-    };
-
     const handleSearch = () => {
         if (searchDate || filterDepartment || filterStatus) {
-            
+
             const filteredAppointments = appointments.filter(appointment => {
                 if (searchDate) {
                     console.log('searchDate', new Date(searchDate).toLocaleDateString(), 'appointment.date', new Date(appointment.date).toLocaleDateString());
@@ -191,71 +179,76 @@ const Appointment = () => {
         navigate('/admin/appointments/view', { state: { appointment } });
     };
 
+    const handleReset = () => {
+        setSearchDate('');
+        setFilterDepartment('');
+        setFilterStatus('');
+        loadAppointments();
+    };
+
 
     return (
         <Box component={Paper} p={2} sx={{ width: '100%', bgcolor: 'background.paper', }} >
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleModalOpen('create')}
-                sx={{ mb: 2 }}
-                disabled
-            >
-                Create Appointment
-            </Button>
+
             {/* Search and Filters */}
-            <Box display='flex' justifyContent='space-between' alignItems='center' gap={2} mb={2} sx={{ width: '100%', mb: 2 }}>
-                <TextField
-                    label="Search by Date"
-                    type="date"
-                    value={searchDate}
-                    onChange={(e) => setSearchDate(e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
-                />
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Filter by Department</InputLabel>
-                    <Select
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                        fullWidth
+                        type="date"
+                        size='small'
+                        value={searchDate}
+                        onChange={(e) => setSearchDate(e.target.value)}
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                        fullWidth
+                        label="Department"
+                        size='small'
+                        select
                         value={filterDepartment}
                         onChange={(e) => setFilterDepartment(e.target.value)}
                     >
-                        <MenuItem value="">
-                            <em>All Departments</em>
-                        </MenuItem>
+                        <MenuItem value="">All</MenuItem>
                         {departments.map((department) => (
                             <MenuItem key={department._id} value={department._id}>
                                 {department.name}
                             </MenuItem>
                         ))}
-                    </Select>
-                </FormControl>
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Filter by Status</InputLabel>
-                    <Select
+                    </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                        fullWidth
+                        label="Status"
+                        size='small'
+                        select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
                     >
-                        <MenuItem value="">
-                            <em>All Statuses</em>
-                        </MenuItem>
+                        <MenuItem value="">All</MenuItem>
                         <MenuItem value="pending">Pending</MenuItem>
-                        <MenuItem value="in progress">In Progress</MenuItem>
                         <MenuItem value="completed">Completed</MenuItem>
-                        <MenuItem value="canceled">Canceled</MenuItem>
-                    </Select>
-                </FormControl>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSearch}
-                    sx={{ mb: 2 }}
-                >
-                    Search
-                </Button>
-            </Box>
+                    </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Tooltip title="Search">
+                        <IconButton onClick={handleSearch}>
+                            <Search />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Reset">
+                        <IconButton onClick={handleReset}>
+                            <RestartAlt />
+                        </IconButton>
+                    </Tooltip>
+                </Grid>
+            </Grid>
+
+            {/* Table */}
             <TableContainer component={Paper}>
-                <Table>
+                <Table size='small'>
                     <TableHead>
                         <TableRow>
                             <TableCell onClick={() => handleSort('index')}>#</TableCell>
@@ -281,12 +274,16 @@ const Appointment = () => {
                                     <TableCell>{new Date(appointment.date).toLocaleString()}</TableCell>
                                     <TableCell>{appointment.status}</TableCell>
                                     <TableCell>
-                                        <IconButton sx={{ mr: 1 }} onClick={() => handleDelete(appointment._id)}>
-                                            <Delete />
-                                        </IconButton>
-                                        <IconButton onClick={() => handleViewAppointment(appointment)}>
-                                            <Visibility />
-                                        </IconButton>
+                                        <Tooltip title={`Delete ${appointment.service?.service}`}>
+                                            <IconButton sx={{ mr: 1 }} onClick={() => handleDelete(appointment._id)}>
+                                                <Delete />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title={`View ${appointment.service?.service}`}>
+                                            <IconButton onClick={() => handleViewAppointment(appointment)}>
+                                                <Visibility />
+                                            </IconButton>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             )) : (

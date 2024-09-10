@@ -75,14 +75,14 @@ const Header = () => {
                 position={isHeaderFixed ? 'fixed' : 'static'}
                 color="primary"
                 sx={{
-                    backgroundColor: '#003366', // Deep blue color
+                    backgroundColor: 'rgba(0, 51, 102, 0.8)',
                     borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                     top: 0,
                     width: '100%',
                     zIndex: (theme) => theme.zIndex.drawer + 3,
                 }}
             >
-                <Container maxWidth="xl">
+                <Container maxWidth="lg">
                     <Toolbar sx={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center' }}>
                         {/* Mobile View */}
                         <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -196,7 +196,7 @@ const Header = () => {
                             >
                                 {user ?
                                     <div>
-                                        <MenuItem key="profile" onClick={() => handleClickMenu('/home/profile')}>
+                                        <MenuItem key="profile" onClick={() => handleClickMenu('/profile')}>
                                             <AccountCircle />
                                             <Typography textAlign="center">
                                                 Profile

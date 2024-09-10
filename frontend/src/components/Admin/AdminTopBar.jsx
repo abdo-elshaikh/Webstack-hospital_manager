@@ -26,7 +26,7 @@ const AdminTopBar = ({ user, handleLogout, open, setOpen }) => {
     };
 
     return (
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#DDDDDD', color: '#000' }}>
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, bgcolor: '#6A9C89' }}>
             <Toolbar>
                 <IconButton onClick={() => setOpen(!open)} edge="start" color="inherit" aria-label="menu">
                     <MenuIcon />

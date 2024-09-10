@@ -1,100 +1,73 @@
 import React, { useEffect, useState } from 'react';
-import { getCurrentUser } from '../services/AuthService';
 import {
-    Grid,
-    Box,
-    Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    InputLabel,
-    MenuItem,
-    Select,
-    FormControl,
-    Avatar,
-    Typography
+    Grid, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+    TextField, Avatar, Typography, Divider, IconButton, Stack
 } from '@mui/material';
-import Header from './Header';
 import { useForm } from "react-hook-form";
-import { useNavigate, useLocation } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import { toast } from 'react-toastify';
 import { updateUser } from '../services/AuthService';
 import useAuth from '../contexts/useAuth';
+import { Home, Logout, Edit, ArrowBack } from '@mui/icons-material';
+import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
 
+// Schema for form validation
 const schema = yup.object().shape({
     name: yup.string().required('Name is required'),
     email: yup.string().email('Invalid email').required('Email is required'),
     role: yup.string().required('Role is required'),
+    age: yup.number(),
+    phone: yup.string(),
+    address: yup.string(),
+    description: yup.string(),
 });
 
 const Profile = () => {
     const { user, handleLogout } = useAuth();
-
     const [showModal, setShowModal] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const location = useLocation();
-    const isStaffPage = location.pathname.includes('staff');
-    const isAdminPage = location.pathname.includes('admin');
     const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
     });
 
+    const ServerURL = 'http://localhost:5000/uploads/';
+    const navigate = useNavigate();
 
-
+    // Prepopulate form with user data
     useEffect(() => {
         if (user) {
-            setValue('name', user?.name || '');
-            setValue('email', user?.email || '');
-            setValue('role', user?.role || '');
+            setValue('name', user.name);
+            setValue('email', user.email);
+            setValue('role', user.role);
+            setValue('age', user.age);
+            setValue('phone', user.phone);
+            setValue('address', user.address);
+            setValue('description', user.description);
+            if (user.image) {
+                setImagePreview(ServerURL + user.image);
+            }
         }
-    }, []);
-
-
-
-
-    const fetchUser = async (id) => {
-        const { user } = await getCurrentUser(id);
-        if (user) {
-            setValue('name', user?.name || '');
-            setValue('email', user?.email || '');
-            setValue('role', user?.role || '');
-        }
-    };
-
+    }, [user, setValue]);
 
     const handleModalClose = () => {
         setShowModal(false);
-        setImagePreview(null);
+        setImagePreview(ServerURL + user.image);
         setImageFile(null);
-        setValue('name', user?.name || '');
-        setValue('email', user?.email || '');
-        setValue('role', user?.role || '');
-    };
-    const handleModalShow = () => setShowModal(true);
-
-    const handleUserUpdate = () => {
-        setShowModal(true);
     };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setImageFile(file);
         if (file) {
-            previewImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
         }
-    };
-
-    const previewImage = (file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(file);
     };
 
     const onSubmit = async (data) => {
@@ -103,168 +76,176 @@ const Profile = () => {
             formData.append('name', data.name);
             formData.append('email', data.email);
             formData.append('role', data.role);
+            formData.append('age', data.age);
+            formData.append('phone', data.phone);
+            formData.append('address', data.address);
+            formData.append('description', data.description);
             if (imageFile) {
                 formData.append('image', imageFile);
             }
-
             const response = await updateUser(user._id, formData);
             if (response.error) {
                 toast.error(response.error);
                 return;
-            } else {
-                toast.success(response.message);
-                fetchUser(response.user?._id);
-                handleModalClose();
             }
+            toast.success(response.message);
+            handleModalClose();
+            // Update stored user data
+            localStorage.setItem('user', JSON.stringify(response.user));
         } catch (error) {
             toast.error(error.response?.data?.error || 'Something went wrong');
         }
     };
 
-    if (!user) {
-        return (
-            <Box className="profile" sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography variant="h5">Loading...</Typography>
-                <Typography variant="body1">Please wait while we load your profile.</Typography>
-                <img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif" alt="Loading..." />
-                <Button onClick={handleLogout}>Logout</Button>
-                <Button onClick={handleUserUpdate}>Update</Button>
-            </Box>
-        );
-    }
-
-    const handleImageView = () => {
-        if (user.googleId || user.facebookId) {
-            if (user.image.includes('https://')) {
-                return user.image;
-            } else {
-                return `http://localhost:5000/uploads/${user.image}`;
-            }
-        } else if (user.image) {
-            return `http://localhost:5000/uploads/${user.image}`;
-        } else {
-            return 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
-        }
-    };
-
     return (
-        <>
-            {/* {!isStaffPage && !isAdminPage && <Header />} */}
-            <Box className="profile container" sx={{ p: 2, minHeight: '100vh' }}>
-                <Grid container spacing={3} mt={12} p={3} bgcolor={'#f8f9fa'} borderRadius={5}>
-                    <Grid item xs={12} md={3} >
-                        <Box
-                            className="left-side profile-info"
-                            sx={{ backgroundColor: '#fff', p: 2, borderRadius: 1, border: '1px solid #dee2e6', textAlign: 'center' }}
-                        >
-                            <Avatar
-                                src={handleImageView()}
-                                alt="Profile"
-                                sx={{ width: 150, height: 150, mx: 'auto', mb: 2, border: '1px solid #dee2e6', cursor: 'pointer' }}
-                                onClick={handleModalShow}
-                            />
-                            <Typography variant="h6">{user?.name}</Typography>
-                            <Typography variant="body1"><strong>Role:</strong> {user?.role}</Typography>
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                sx={{ mt: 3 }}
-                                onClick={handleUserUpdate}
-                            >
-                                Edit Profile
-                            </Button>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={12} md={7}>
-                        <Box className="profile-right" sx={{ p: 2, borderRadius: 1 }}>
-                            <Typography variant="h5">Profile Details</Typography>
-                            <hr />
-                            <Box>
-                                <Typography variant="body1"><strong>Phone:</strong> +20 111 222 3333</Typography>
-                                <Typography variant="body1"><strong>Email:</strong> {user?.email}</Typography>
-                                <Typography variant="body1"><strong>Address:</strong> 123 Main St, Anytown USA</Typography>
-                                <Typography variant="body1"><strong>Description:</strong> Lorem ipsum dolor, sit amet consectetur adipisicing elit. Adipisci fuga rerum reiciendis dolore ipsam excepturi accusamus magni velit autem ipsum aliquid, exercitationem ea, libero repellendus, ipsa deserunt nihil pariatur maxime!</Typography>
-                            </Box>
-                        </Box>
-                    </Grid>
+        <Box sx={{ bgcolor: '#f3f4f6', minHeight: '100vh' }}>
+            <Grid container>
+                {/* Header */}
+                <Grid item xs={12} >
+                    <Box sx={{ bgcolor: '#1976d2', p: 2, boxShadow: 1}}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Typography variant="h5" color="white" fontWeight="bold">Profile</Typography>
+                            <Stack direction="row" spacing={2}>
+                                <IconButton color="inherit" onClick={() => navigate('/')}>
+                                    <Home />
+                                </IconButton>
+                                <IconButton color="inherit" onClick={() => navigate(-1)}>
+                                    <ArrowBack />
+                                </IconButton>
+                                <Button variant="contained" color="error" onClick={handleLogout}>
+                                    <Logout /> Logout
+                                </Button>
+                            </Stack>
+                        </Stack>
+                    </Box>
                 </Grid>
-            </Box>
 
-            <Dialog open={showModal} onClose={handleModalClose}>
+                {/* Profile Info */}
+                <Grid item xs={12} md={3} sx={{ minHeight: { xs: 'auto', md: 'calc(100vh - 64px)' }}}>
+                    <Box sx={{ p: 3, bgcolor: '#fff', boxShadow: 1, alignItems: 'center', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <Avatar
+                            src={`${ServerURL}${user?.image}` || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}
+                            alt="Profile"
+                            sx={{ width: 150, height: 150, mb: 2, cursor: 'pointer', border: '3px solid #2196f3' }}
+                            onClick={() => setShowModal(true)}
+                        />
+                        <Typography variant="h6" fontWeight="bold">{user?.name}</Typography>
+                        <Typography variant="body2" color="textSecondary">{user?.role}</Typography>
+                        <Divider sx={{ my: 2 }} />
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<Edit />}
+                            sx={{ mt: 2 }}
+                            onClick={() => setShowModal(true)}
+                        >
+                            Edit Profile
+                        </Button>
+                    </Box>
+                </Grid>
+
+                {/* Profile Details */}
+                <Grid item xs={12} md={9}>
+                    <Box sx={{p: 2}}>
+                        <Typography variant="h5" fontWeight="bold" mb={2}>Profile Details</Typography>
+                        <Divider />
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="body1"><strong>Name:</strong> {user?.name}</Typography>
+                            <Typography variant="body1"><strong>Email:</strong> {user?.email}</Typography>
+                            <Typography variant="body1"><strong>Role:</strong> {user?.role}</Typography>
+                            <Typography variant="body1"><strong>Age:</strong> {user?.age}</Typography>
+                            <Typography variant="body1"><strong>Phone:</strong> {user?.phone}</Typography>
+                            <Typography variant="body1"><strong>Address:</strong> {user?.address}</Typography>
+                            <Typography variant="body1"><strong>Description:</strong> {user?.description}</Typography>
+                            <Typography variant="body1"><strong>Joined On:</strong> {moment(user?.createdAt).format('MMMM Do YYYY')}</Typography>
+                            <Typography variant="body1"><strong>Last Updated:</strong> {moment(user?.updatedAt).format('MMMM Do YYYY')}</Typography>
+                        </Box>
+                    </Box>
+                </Grid>
+            </Grid>
+
+            {/* Edit Profile Modal */}
+            <Dialog open={showModal} onClose={handleModalClose} maxWidth="sm" fullWidth>
                 <DialogTitle>Edit Profile</DialogTitle>
-                <DialogContent>
+                <DialogContent dividers>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <Grid container spacing={2}>
                             <Grid item xs={12} md={6}>
                                 <TextField
-                                    label="Name"
                                     fullWidth
-                                    {...register('name')}
+                                    label="Name"
+                                    defaultValue={user?.name}
                                     error={!!errors.name}
                                     helperText={errors.name?.message}
-                                    variant="outlined"
-                                    margin="normal"
+                                    {...register('name')}
                                 />
-                                <TextField
-                                    label="Email"
-                                    fullWidth
-                                    type="email"
-                                    {...register('email')}
-                                    error={!!errors.email}
-                                    helperText={errors.email?.message}
-                                    variant="outlined"
-                                    margin="normal"
-                                />
-                                <FormControl fullWidth variant="outlined" margin="normal">
-                                    <InputLabel id="role-label">Role</InputLabel>
-                                    <Select
-                                        labelId="role-label"
-                                        label="Role"
-                                        {...register('role')}
-                                        error={!!errors.role}
-                                        helperText={errors.role?.message}
-                                        variant="outlined"
-                                        margin="normal"
-                                    >
-                                        <MenuItem value="user">User</MenuItem>
-                                        <MenuItem value="staff">Staff</MenuItem>
-                                        <MenuItem value="admin">Admin</MenuItem>
-                                    </Select>
-                                    {errors.role && <p className="text-danger">{errors.role.message}</p>}
-                                </FormControl>
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <TextField
-                                    type="file"
                                     fullWidth
-                                    onChange={handleImageChange}
-                                    InputLabelProps={{ shrink: true }}
-                                    variant="outlined"
-                                    margin="normal"
-                                    label="Upload Image"
-                                    helperText="Please upload an image"
+                                    label="Email"
+                                    defaultValue={user?.email}
+                                    disabled
+                                    {...register('email')}
                                 />
-                                {imagePreview && (
-                                    <img
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        style={{ width: '100%', marginTop: '10px', borderRadius: '50%' }}
-                                    />
-                                )}
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Role"
+                                    defaultValue={user?.role}
+                                    disabled
+                                    {...register('role')}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Age"
+                                    type="number"
+                                    defaultValue={user?.age}
+                                    {...register('age')}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Phone"
+                                    defaultValue={user?.phone}
+                                    {...register('phone')}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Address"
+                                    defaultValue={user?.address}
+                                    {...register('address')}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    minRows={3}
+                                    label="Description"
+                                    defaultValue={user?.description}
+                                    {...register('description')}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <input type="file" onChange={handleImageChange} />
+                                {imagePreview && <Avatar src={imagePreview} alt="Preview" sx={{ mt: 2, width: 100, height: 100 }} />}
                             </Grid>
                         </Grid>
-                        <DialogActions>
-                            <Button onClick={handleModalClose} variant="outlined" color="secondary">
-                                Close
-                            </Button>
-                            <Button type="submit" variant="contained" color="primary">
-                                Save Changes
-                            </Button>
-                        </DialogActions>
                     </form>
                 </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleModalClose}>Cancel</Button>
+                    <Button variant="contained" color="primary" onClick={handleSubmit(onSubmit)}>Save</Button>
+                </DialogActions>
             </Dialog>
-        </>
+        </Box>
     );
 };
 

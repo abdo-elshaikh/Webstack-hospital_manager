@@ -9,8 +9,14 @@ import {
     TextField, MenuItem, Button, Box, Typography, Divider,
     InputAdornment, Grid
 } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDollarSign, faNotesMedical, faCalendar, faUserMd, faStethoscope, faUser } from '@fortawesome/free-solid-svg-icons';
+import {
+    Person as PersonIcon,
+    LocalHospital as LocalHospitalIcon,
+    CalendarToday as CalendarTodayIcon,
+    AttachMoney as AttachMoneyIcon,
+    MedicalServices as MedicalServicesIcon,
+    Discount as DiscountIcon
+} from '@mui/icons-material';
 import useAuth from '../../contexts/useAuth';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -34,7 +40,6 @@ const schema = yup.object().shape({
     rest: yup.number().required('Rest is required'),
     total: yup.number().required('Total is required'),
 });
-
 
 const AppointmentCreate = ({ patient, setIsModalOpen }) => {
     const { user } = useAuth();
@@ -110,14 +115,12 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
         } else {
             setIsOtherDiscount(false);
             const discount = (Number(discountValue.replace('%', '')) / 100) * watch('price');
-            console.log('price', watch('price'), 'paid', watch('paid'), 'discount', discount);
             calculateServiceAmount(watch('price'), discount, 0);
         }
     };
 
     const handleOtherDiscountChange = (e) => {
         const discountValue = e.target.value;
-        console.log('discountValue', discountValue, 'price', watch('price'));
         if (discountValue > watch('price')) {
             toast.error('Discount value cannot be greater than price.');
             setValue('discount', watch('price'));
@@ -144,7 +147,6 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
         const paidValue = paid === 0 ? price - discountValue : paid;
         const rest = Number(price) - Number(discountValue) - Number(paidValue);
         const total = Number(paidValue) + Number(rest);
-        console.log('price', price, 'discount', discountValue, 'paid', paidValue, 'rest', rest, 'total', total);
         setValue('discount', discountValue);
         setValue('paid', paidValue);
         setValue('rest', rest);
@@ -156,8 +158,6 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
             toast.error('Please select a date in the future.');
             return;
         }
-        // data without discount type
-        console.log('data', data);
         try {
             const response = await createAppointment({ ...data, patient: patient?._id, create_by: user?._id });
             if (response.error) {
@@ -190,7 +190,7 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faUser} />
+                                        <PersonIcon />
                                     </InputAdornment>
                                 ),
                             }}
@@ -211,7 +211,7 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faUserMd} />
+                                        <LocalHospitalIcon />
                                     </InputAdornment>
                                 ),
                             }}
@@ -239,48 +239,21 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faStethoscope} />
+                                        <MedicalServicesIcon />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{ mb: 2 }}
                         >
-                            <MenuItem value={""} disabled>Select Service</MenuItem>
+                            <MenuItem value="" disabled>Select Service</MenuItem>
                             {services.map(service => (
                                 <MenuItem key={service._id} value={service._id}>
-                                    {service.service}
+                                    {service.name}
                                 </MenuItem>
                             ))}
                         </TextField>
                     </Grid>
 
-                    {/* Service Type Input */}
-                    <Grid item xs={12}>
-                        <TextField
-                            select
-                            fullWidth
-                            label="Service Type"
-                            {...register('serviceType', { required: 'Service type is required' })}
-                            onChange={handleServiceTypeChange}
-                            error={!!errors.serviceType}
-                            helperText={errors.serviceType?.message}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faNotesMedical} />
-                                    </InputAdornment>
-                                ),
-                            }}
-                            sx={{ mb: 2 }}
-                        >
-                            <MenuItem value="" disabled>Select Service Type</MenuItem>
-                            {serviceTypes.map((type) => (
-                                <MenuItem key={type} value={type}>
-                                    {type}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
                     {/* Staff Input */}
                     <Grid item xs={12}>
                         <TextField
@@ -293,59 +266,81 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faUserMd} />
+                                        <PersonIcon />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{ mb: 2 }}
                         >
-                            <MenuItem value="">Select Staff</MenuItem>
-                            {staff.map(staff => (
-                                <MenuItem key={staff._id} value={staff._id}>
-                                    {staff.user?.name}
+                            <MenuItem value="" disabled>Select Staff</MenuItem>
+                            {staff.map(staffMember => (
+                                <MenuItem key={staffMember._id} value={staffMember._id}>
+                                    {staffMember.name}
                                 </MenuItem>
                             ))}
                         </TextField>
                     </Grid>
+
                     {/* Date Input */}
                     <Grid item xs={12}>
                         <TextField
-                            fullWidth
-                            label="Date"
                             type="datetime-local"
-                            {...register('date', { required: 'Date is required' })}
+                            fullWidth
+                            label="Date & Time"
+                            {...register('date', { required: 'Date & Time is required' })}
                             error={!!errors.date}
                             helperText={errors.date?.message}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faCalendar} />
+                                        <CalendarTodayIcon />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{ mb: 2 }}
                         />
                     </Grid>
+
+                    {/* Service Type Input */}
+                    <Grid item xs={12}>
+                        <TextField
+                            select
+                            fullWidth
+                            label="Service Type"
+                            {...register('serviceType', { required: 'Service Type is required' })}
+                            onChange={handleServiceTypeChange}
+                            error={!!errors.serviceType}
+                            helperText={errors.serviceType?.message}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <MedicalServicesIcon />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="" disabled>Select Service Type</MenuItem>
+                            {serviceTypes.map((type, index) => (
+                                <MenuItem key={index} value={type}>
+                                    {type}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Grid>
+
                     {/* Reason Input */}
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
-                            label="Discount Reason"
-                            {...register('discountReason', { required: 'Reason is required' })}
+                            label="Reason"
+                            {...register('reason', { required: 'Reason is required' })}
                             error={!!errors.reason}
                             helperText={errors.reason?.message}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faNotesMedical} />
-                                    </InputAdornment>
-                                ),
-                            }}
                             sx={{ mb: 2 }}
                         />
                     </Grid>
-                </Grid>
-                <Grid container item xs={4} spacing={2}>
+
                     {/* Price Input */}
                     <Grid item xs={12}>
                         <TextField
@@ -353,30 +348,33 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             label="Price"
                             type="number"
                             {...register('price', { required: 'Price is required' })}
-                            error={!!errors.price}
-                            helperText={errors.price?.message}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faDollarSign} />
+                                        <AttachMoneyIcon />
                                     </InputAdornment>
                                 ),
                             }}
+                            error={!!errors.price}
+                            helperText={errors.price?.message}
                             sx={{ mb: 2 }}
                         />
                     </Grid>
+
                     {/* Discount Input */}
                     <Grid item xs={12}>
                         <TextField
                             select
                             fullWidth
-                            label="Discount Type"
-                            value={discountType}
+                            label="Discount"
+                            {...register('discount', { required: 'Discount is required' })}
                             onChange={handleDiscountTypeChange}
+                            error={!!errors.discount}
+                            helperText={errors.discount?.message}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faDollarSign} />
+                                        <DiscountIcon />
                                     </InputAdornment>
                                 ),
                             }}
@@ -390,114 +388,97 @@ const AppointmentCreate = ({ patient, setIsModalOpen }) => {
                             ))}
                         </TextField>
                     </Grid>
-                    {/* Other Discount Input */}
-                    <Grid item xs={12}>
-                        <TextField
-                            fullWidth
-                            label="Other Discount"
-                            type="number"
-                            disabled={!isOtherDiscount}
-                            {...register('discount', { required: 'Discount is required' })}
-                            onChange={handleOtherDiscountChange}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faDollarSign} />
-                                    </InputAdornment>
-                                ),
-                            }}
-                            sx={{ mb: 2 }}
-                        />
-                    </Grid>
+
+                    {isOtherDiscount && (
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label="Other Discount"
+                                type="number"
+                                {...register('discount', { required: 'Discount is required' })}
+                                onChange={handleOtherDiscountChange}
+                                error={!!errors.discount}
+                                helperText={errors.discount?.message}
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                    )}
+
                     {/* Paid Input */}
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
                             label="Paid"
                             type="number"
-                            {...register('paid', { required: 'Paid is required' })}
+                            {...register('paid', { required: 'Paid amount is required' })}
+                            onChange={handlePaidChange}
                             error={!!errors.paid}
                             helperText={errors.paid?.message}
-                            onChange={handlePaidChange}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faDollarSign} />
+                                        <AttachMoneyIcon />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{ mb: 2 }}
                         />
                     </Grid>
+
                     {/* Rest Input */}
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
                             label="Rest"
                             type="number"
-                            {...register('rest')}
+                            {...register('rest', { required: 'Rest amount is required' })}
                             error={!!errors.rest}
                             helperText={errors.rest?.message}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faDollarSign} />
+                                        <AttachMoneyIcon />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{ mb: 2 }}
+                            disabled
                         />
                     </Grid>
+
                     {/* Total Input */}
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
                             label="Total"
                             type="number"
-                            {...register('total', { required: 'Total is required' })}
+                            {...register('total', { required: 'Total amount is required' })}
                             error={!!errors.total}
                             helperText={errors.total?.message}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <FontAwesomeIcon icon={faDollarSign} />
+                                        <AttachMoneyIcon />
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{ mb: 2 }}
+                            disabled
                         />
                     </Grid>
                 </Grid>
-                {/* Notes Input */}
-                <Grid item xs={12}>
-                    <TextField
-                        fullWidth
-                        label="Notes"
-                        multiline
-                        rows={4}
-                        {...register('reason', { required: 'Reason is required' })}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <FontAwesomeIcon icon={faNotesMedical} />
-                                </InputAdornment>
-                            ),
-                        }}
-                        sx={{ mb: 2 }}
-                    />
+
+                <Grid container item xs={4} alignItems="flex-end">
+                    <Grid item xs={12}>
+                        <Button variant="contained" color="primary" type="submit" fullWidth sx={{ mb: 1 }}>
+                            Create Appointment
+                        </Button>
+                        <Button variant="outlined" color="secondary" onClick={handleCancel} fullWidth>
+                            Cancel
+                        </Button>
+                    </Grid>
                 </Grid>
             </Grid>
-            {/* Buttons */}
-            <Box mt={2} display="flex" justifyContent="flex-end">
-                <Button
-                    variant="contained"
-                    color="primary"
-                    type="submit"
-                    sx={{ mr: 2, width: '100px' }}
-                >
-                    Save
-                </Button>
-            </Box>
         </Box>
     );
 };

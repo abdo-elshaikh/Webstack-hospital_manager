@@ -13,19 +13,9 @@ import {
     ListItem,
     ListItemText,
     Divider,
+    ListItemAvatar
 } from '@mui/material';
-import { BarChart, LineChart, PieChart } from '@mui/x-charts';
-import { green, red, blue, yellow, purple, grey } from '@mui/material/colors';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-import FeedbackIcon from '@mui/icons-material/Feedback';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { Message } from '@mui/icons-material';
-
+import { ArrowUpward, ArrowDownward, Person2 } from '@mui/icons-material';
 // Services imports
 import { getAllStaff } from '../../services/staffService';
 import { getPatients } from '../../services/PatientService';
@@ -187,7 +177,6 @@ const AdminDashboard = () => {
                                         <Typography variant="h6" gutterBottom>
                                             Online Bookings
                                         </Typography>
-
                                     </Paper>
                                 </Grid>
 
@@ -212,9 +201,16 @@ const AdminDashboard = () => {
                                 <List>
                                     {contacts.slice(0, 5).map(contact => (
                                         <ListItem key={contact._id} divider>
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    sx={{ bgcolor: '' }}
+                                                >
+                                                    <Person2 color="primary" />
+                                                </Avatar>
+                                            </ListItemAvatar>
                                             <ListItemText
                                                 primary={`Name: ${contact.name}`}
-                                                secondary={`Email: ${contact.email}`}
+                                                secondary={`Msg: ${contact.message}`}
                                             />
                                         </ListItem>
                                     ))}
@@ -245,9 +241,9 @@ const DashboardCard = ({ title, value, percentage, isPositive }) => {
                 </Typography>
                 <Box display="flex" alignItems="center">
                     {isPositive ? (
-                        <ArrowUpwardIcon sx={{ color: 'green' }} />
+                        <ArrowUpward sx={{ color: 'green' }} />
                     ) : (
-                        <ArrowDownwardIcon sx={{ color: 'red' }} />
+                        <ArrowDownward sx={{ color: 'red' }} />
                     )}
                     <Typography variant="body2" sx={{ color: isPositive ? 'green' : 'red', ml: 0.5 }}>
                         {percentage} from yesterday

@@ -25,7 +25,7 @@ const ContactList = () => {
             const data = await getAllContacts();
             setContacts(data.contacts);
             setSearchResult(data.contacts);
-            setTotalItems(data.contacts.length);
+            setTotalItems(data.contacts?.length || 100);
         };
         fetchContacts();
     }, []);
@@ -183,7 +183,7 @@ const ContactList = () => {
                                 <TableCell>{contact.name}</TableCell>
                                 <TableCell>{contact.email}</TableCell>
                                 <TableCell>{new Date(contact.date).toLocaleDateString()}</TableCell>
-                                <TableCell>{contact.status}</TableCell>
+                                <TableCell>{contact.status === 'read'? `Read By ${contact.read_by?.name}`: `Archived By ${contact.archived_by?.name}`  }</TableCell>
                                 <TableCell>
                                     <Button
                                         variant="contained"

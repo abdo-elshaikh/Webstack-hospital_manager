@@ -20,8 +20,10 @@ import {
   Grid,
   Typography,
   Box,
+  Tooltip,
+  TablePagination
 } from '@mui/material';
-import { Delete, Edit, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Delete, Edit, Visibility, VisibilityOff, Cancel, CheckCircle } from '@mui/icons-material';
 import useAuth from '../contexts/useAuth';
 import '../styles/admin.css';
 
@@ -30,6 +32,8 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
   const [filter, setFilter] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -47,7 +51,7 @@ const Users = () => {
     };
 
     fetchUsers();
-  }, [currentUser._id]);
+  }, [currentUser?._id, setUsers]);
 
   useEffect(() => {
     filterUsers();
@@ -163,6 +167,7 @@ const Users = () => {
                     <TableCell>
                       <Select
                         value={user.role}
+                        size='small'
                         onChange={(e) => handleEdit(user._id, e.target.value)}
                         variant="outlined"
                         fullWidth
@@ -174,12 +179,19 @@ const Users = () => {
                     </TableCell>
                     <TableCell>{user.isActive ? "Active" : "Not Active"}</TableCell>
                     <TableCell sx={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', flexWrap: 'wrap', height: '100%' }}>
-                      <IconButton onClick={() => handleActivation(user._id)}>
-                        {user.isActive ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
+                      <Tooltip title={user.isActive ? "Deactivate User" : "Activate User"}>
+                        <IconButton onClick={() => handleActivation(user._id)}>
+                          {user.isActive ?
+                            <CheckCircle sx={{ color: 'green' }} /> :
+                            <Cancel sx={{ color: 'red' }} />
+                          }
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={`Delete User: ${user.name}`}>
                       <IconButton onClick={() => handleDelete(user._id)}>
-                        <Delete />
+                        <Delete sx={{ color: 'white' }} />
                       </IconButton>
+                    </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -188,6 +200,16 @@ const Users = () => {
           </TableContainer>
         </Grid>
       </Grid>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2 }}>
+        <TablePagination
+          component="div"
+          count={users.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={(e, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => setRowsPerPage(e.target.value)}
+        />
+      </Box>
     </Box>
   );
 };

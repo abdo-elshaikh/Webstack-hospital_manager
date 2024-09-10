@@ -16,7 +16,10 @@ const createContact = async (req, res) => {
 
 const getAllContacts = async (req, res) => {
     try {
-        const contacts = await Contact.find();
+        const contacts = await Contact.find()
+        // .populate('read_by')
+        // .populate('archive_by');
+        console.log(contacts, 'contacts');
         res.status(200).json({ contacts });
     } catch (error) {
         res.status(500).json({ error: 'Failed to get contacts, please try again!' });

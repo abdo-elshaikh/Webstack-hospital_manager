@@ -32,7 +32,10 @@ const updateUser = async (req, res) => {
             currentUser.name = formData.name;
             currentUser.email = formData.email;
             currentUser.role = formData.role;
-
+            currentUser.age = formData.age;
+            currentUser.phone = formData.phone;
+            currentUser.address = formData.address;
+            currentUser.description = formData.description;
             if (req.file) {
                 // Remove old image if it exists
                 // if (currentUser.image) {

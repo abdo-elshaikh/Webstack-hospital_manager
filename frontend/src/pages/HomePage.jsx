@@ -12,8 +12,7 @@ import OnlineBooking from '../components/Home/OnlineBooking';
 import Location from '../components/Home/Location';
 import ContactUs from '../components/Home/ContactUs';
 import Footer from '../components/Footer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowAltCircleUp } from '@fortawesome/free-solid-svg-icons';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import PrivateRoute from '../components/PrivateRoute';
 import '../styles/home.css';
 
@@ -53,7 +52,7 @@ const Home = () => {
                 <Route path="/online-booking" element={<OnlineBooking />} />
                 <Route path="/location" element={<Location />} />
                 <Route path="/profile" element={<PrivateRoute allowedRoles={['user', 'admin', 'staff']} element={Profile} />} />
-                <Route path="*" element={ <Navigate to='/not-found' />} />
+                <Route path="*" element={<Navigate to='/not-found' />} />
             </Routes>
             <Footer />
             {showScrollToTopButton && !isMobile && (
@@ -64,7 +63,7 @@ const Home = () => {
                     sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 100 }}
                     onClick={() => window.scrollTo(0, 0)}
                 >
-                    <FontAwesomeIcon icon={faArrowAltCircleUp} />
+                    <ArrowUpwardIcon />
                 </IconButton>
             )}
         </>

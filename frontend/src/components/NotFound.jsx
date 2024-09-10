@@ -1,43 +1,26 @@
-// components/NotFound.js
 import React from 'react';
-import { Container, Typography, Box, Button } from '@mui/material';
+import { Container, Typography, Button, Box } from '@mui/material';
+import { Link } from 'react-router-dom';
 
-const NotFound = () => {
+const NotFoundPage = () => {
     return (
-        <Container maxWidth="xl">
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh',
-                    textAlign: 'center',
-                    bgcolor: '#f5f5f5',
-                    p: 3
-                }}
-            >
-                <Typography variant="h1" color="primary" sx={{ fontWeight: 'bold' }} gutterBottom>
-                    404
-                </Typography>
-                <Typography variant="h2" color="red" gutterBottom>
-                    PAGE NOT FOUND
-                </Typography>
-                <Typography variant="body1" color="textSecondary" paragraph gutterBottom>
-                    Sorry, we couldn't find the page you're looking for.
-                </Typography>
+        <Container sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', textAlign: 'center' }}>
+            <Box sx={{ mb: 4 }}>
+                <Typography variant="h1" sx={{ fontSize: '10rem', fontWeight: 'bold', color: '#f44336' }}>404</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>Page Not Found</Typography>
+                <Typography variant="body1" sx={{ mb: 4 }}>The page you're looking for doesn't exist or has been moved.</Typography>
                 <Button
-                    variant="outlined"
-                    color="info"
-                    component="a"
-                    href="/"
-                    sx={{ mt: 4 }}
+                    component={Link}
+                    to="/"
+                    variant="contained"
+                    color="primary"
+                    sx={{ borderRadius: '8px', padding: '10px 20px' }}
                 >
-                    Go back to home
+                    Go to Homepage
                 </Button>
             </Box>
         </Container>
     );
 };
 
-export default NotFound;
+export default NotFoundPage;

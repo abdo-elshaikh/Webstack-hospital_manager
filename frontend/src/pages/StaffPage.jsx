@@ -3,16 +3,16 @@ import { toast } from "react-toastify";
 import { Routes, Route } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Drawer, IconButton, List, ListItem, ListItemText, Toolbar, AppBar, Typography, Box, useTheme, useMediaQuery, Divider, ListItemIcon } from "@mui/material";
-import { Menu as MenuIcon, Close as CloseIcon, GroupSharp, Home, BookOnline, Logout, Person, ExitToApp, CalendarMonth } from "@mui/icons-material";
+import { Menu as MenuIcon, Close as CloseIcon, GroupSharp, Home, BookOnline, Logout, Person, ExitToApp, CalendarMonth, CalendarToday } from "@mui/icons-material";
 import StaffHome from "../components/Staff/StaffHome";
 import PatientAppointment from "../components/Appointments/PatientAppointment";
-import Profile from "../components/Profile";
 import Patient from "../components/Patients/Patient";
 import BookAppointment from "../components/Appointments/BookAppointment";
 import Appointment from "../components/Appointments/Appointment";
 import NotFound from "../components/NotFound";
 import useAuth from "../contexts/useAuth";
 import StaffContent from "../components/Staff/StaffContent";
+import MyCalendar from "../components/Calendar/MyCalendar";
 import '../styles/staff.css';
 
 const drawerWidth = 240;
@@ -103,9 +103,9 @@ const Staff = () => {
                         <ListItemIcon><BookOnline /></ListItemIcon>
                         <ListItemText primary="Online Bookings" />
                     </ListItem>
-                    <ListItem button onClick={() => handleNavigation('/staff/profile')}>
-                        <ListItemIcon><Person /></ListItemIcon>
-                        <ListItemText primary="Profile" />
+                    <ListItem button onClick={() => handleNavigation('/staff/calendar')}>
+                        <ListItemIcon><CalendarToday /></ListItemIcon>
+                        <ListItemText primary="Calendar" />
                     </ListItem>
                     <Divider />
                     <ListItem button onClick={handleLogout}>
@@ -138,13 +138,12 @@ const Staff = () => {
                     <Route path="/bookings" element={<StaffContent title="Online Bookings" >
                         <BookAppointment />
                     </StaffContent>} />
-                    <Route path="/profile" element={<StaffContent title="Profile" >
-                        <Profile />
-                    </StaffContent>} />
                     <Route path="/patient/appointments/:id" element={<StaffContent title="Patient Appointments" >
                         <PatientAppointment />
                     </StaffContent>} />
-
+                    <Route path="/calendar" element={<StaffContent title="Calendar" >
+                        <MyCalendar />
+                    </StaffContent>} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Box>
